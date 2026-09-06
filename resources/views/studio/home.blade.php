@@ -165,7 +165,7 @@
             <a href="#">Features</a>
             <a href="#">AI Tools</a>
             <a href="#">Pricing</a>
-            <a href="#" class="btn">Start Creating</a>
+            <a href="{{ route('register') }}" class="btn">Start Creating</a>
         </div>
     </nav>
 
@@ -187,8 +187,8 @@
             </p>
 
             <div class="actions">
-                <a class="btn" href="#">Start Free Trial</a>
-                <a class="btn secondary" href="#">Explore AI Tools</a>
+                <a class="btn" href="{{ route('register') }}">Start Free Trial</a>
+                <a class="btn secondary" href="{{ route('login') }}">Login to Studio</a>
             </div>
         </div>
 
