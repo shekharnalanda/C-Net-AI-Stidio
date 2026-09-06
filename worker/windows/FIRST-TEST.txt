@@ -1,0 +1,22 @@
+C-NET AI STUDIO - FIRST WORKER TEST
+
+1. Extract the ZIP on the Windows laptop.
+2. Double-click:
+   INSTALL-C-NET-AI-WORKER.cmd
+
+The installer will:
+- detect/install Python
+- install worker dependencies
+- detect/install FFmpeg
+- inspect CPU/GPU/RAM
+- connect securely to studio.mciedu.com
+- register the laptop as a worker
+- perform a connectivity/self-test
+
+After setup:
+Double-click:
+START-C-NET-AI-WORKER.cmd
+
+Keep the worker window running while AI jobs are rendered.
+
+No database password or GitHub password is required on the laptop.

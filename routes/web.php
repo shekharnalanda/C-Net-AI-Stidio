@@ -6,6 +6,7 @@ use App\Http\Controllers\Studio\AIJobController;
 use App\Http\Controllers\Studio\DashboardController;
 use App\Http\Controllers\Studio\MediaController;
 use App\Http\Controllers\Studio\ProjectController;
+use App\Http\Controllers\Studio\WorkerDownloadController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -60,4 +61,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin', [AdminController::class, 'index'])
         ->name('admin.dashboard');
+
+    Route::get(
+        '/admin/worker/download',
+        [WorkerDownloadController::class, 'download']
+    )->name('admin.worker.download');
 });

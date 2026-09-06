@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import platform
@@ -321,6 +322,14 @@ def request_next_job():
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Register, heartbeat and check one job, then exit."
+    )
+    args = parser.parse_args()
+
     print("======================================================")
     print(" C-Net AI Studio Dedicated Worker V4")
     print("======================================================")
@@ -339,6 +348,11 @@ def main():
 
             if not job:
                 print("[IDLE] No AI jobs available.")
+
+                if args.once:
+                    print("[SELF-TEST] Worker API connection is healthy.")
+                    return
+
                 time.sleep(POLL_SECONDS)
                 continue
 
@@ -352,6 +366,9 @@ def main():
                 )
 
                 print(f"[COMPLETE] job={job['id']}")
+
+                if args.once:
+                    return
 
             except Exception as exc:
                 print(f"[FAILED] job={job.get('id')} error={exc}")
