@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class AIWorker extends Model
 {
+    protected $table = 'ai_workers';
+
     protected $guarded = [];
 
     protected $casts = [
