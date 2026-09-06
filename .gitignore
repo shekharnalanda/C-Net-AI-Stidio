@@ -28,3 +28,9 @@ Thumbs.db
 
 error_log
 **/error_log
+
+__pycache__/
+*.py[cod]
+worker/**/workspace/
+worker/**/config.json
+worker/**/worker-id.txt
