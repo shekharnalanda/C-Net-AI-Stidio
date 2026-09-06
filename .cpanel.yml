@@ -3,6 +3,8 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home4/mcied45x/studio.mciedu.com
     - /bin/rsync -a --delete --exclude='.git' --exclude='.env' ./ $DEPLOYPATH/
+    - cd $DEPLOYPATH && /opt/cpanel/composer/bin/composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+    - /bin/rsync -a $DEPLOYPATH/public/ $DEPLOYPATH/
     - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan optimize:clear
     - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan config:cache
     - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan route:cache
