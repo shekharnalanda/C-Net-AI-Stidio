@@ -1,0 +1,7 @@
+{
+  "studio_url": "https://studio.mciedu.com",
+  "worker_token": "PASTE_SERVER_WORKER_TOKEN_HERE",
+  "worker_name": "C-Net AI Worker",
+  "poll_seconds": 10,
+  "workspace": "workspace"
+}
