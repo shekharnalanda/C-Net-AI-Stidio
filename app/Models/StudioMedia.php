@@ -4,18 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AIJob extends Model
+class StudioMedia extends Model
 {
-    protected $table = 'ai_jobs';
+    protected $table = 'studio_media';
 
     protected $guarded = [];
 
     protected $casts = [
-        'payload' => 'array',
-        'result' => 'array',
-        'started_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'available_at' => 'datetime',
+        'metadata' => 'array',
     ];
 
     public function project()

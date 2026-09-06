@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Studio\AdminController;
+use App\Http\Controllers\Studio\AIJobController;
 use App\Http\Controllers\Studio\DashboardController;
+use App\Http\Controllers\Studio\MediaController;
 use App\Http\Controllers\Studio\ProjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,29 +13,50 @@ Route::get('/', function () {
 })->name('studio.home');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])
-        ->name('login');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.perform');
 
-    Route::post('/login', [AuthController::class, 'login'])
-        ->name('login.perform');
-
-    Route::get('/register', [AuthController::class, 'showRegister'])
-        ->name('register');
-
-    Route::post('/register', [AuthController::class, 'register'])
-        ->name('register.perform');
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.perform');
 });
 
 Route::middleware('auth')->group(function () {
-
-    Route::post('/logout', [AuthController::class, 'logout'])
-        ->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/studio', [DashboardController::class, 'index'])
         ->name('studio.dashboard');
 
+    Route::get('/studio/projects', [ProjectController::class, 'index'])
+        ->name('projects.index');
+
     Route::post('/studio/projects', [ProjectController::class, 'store'])
         ->name('projects.store');
+
+    Route::get('/studio/projects/{project}', [ProjectController::class, 'editor'])
+        ->name('projects.editor');
+
+    Route::put('/studio/projects/{project}', [ProjectController::class, 'update'])
+        ->name('projects.update');
+
+    Route::post(
+        '/studio/projects/{project}/generate',
+        [ProjectController::class, 'generate']
+    )->name('projects.generate');
+
+    Route::post(
+        '/studio/projects/{project}/media',
+        [MediaController::class, 'store']
+    )->name('media.store');
+
+    Route::delete(
+        '/studio/media/{media}',
+        [MediaController::class, 'destroy']
+    )->name('media.destroy');
+
+    Route::get(
+        '/studio/jobs/{job}/status',
+        [AIJobController::class, 'status']
+    )->name('jobs.status');
 
     Route::get('/admin', [AdminController::class, 'index'])
         ->name('admin.dashboard');

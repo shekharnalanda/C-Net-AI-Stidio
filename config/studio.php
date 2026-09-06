@@ -9,7 +9,9 @@ return [
         'Create • Edit • Enhance • Automate'
     ),
 
-    'domain' => env(
+        'worker_token' => env('STUDIO_WORKER_TOKEN', ''),
+
+'domain' => env(
         'STUDIO_DOMAIN',
         'https://studio.mciedu.com'
     ),
