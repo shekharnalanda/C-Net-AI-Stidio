@@ -3,162 +3,242 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $Root
 
-Write-Host ""
-Write-Host "========================================================="
-Write-Host " C-Net AI Studio Dedicated Worker V5"
-Write-Host " Automatic Windows Installer"
-Write-Host "========================================================="
-Write-Host ""
-
-function Command-Exists($cmd) {
-    return [bool](Get-Command $cmd -ErrorAction SilentlyContinue)
+function Refresh-Path {
+    $machine = [Environment]::GetEnvironmentVariable("Path", "Machine")
+    $user = [Environment]::GetEnvironmentVariable("Path", "User")
+    $env:Path = "$machine;$user"
 }
 
+function Command-Exists($Name) {
+    return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Find-FFmpeg {
+    $direct = Get-Command ffmpeg -ErrorAction SilentlyContinue
+
+    if ($direct) {
+        return $direct.Source
+    }
+
+    $roots = @(
+        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages",
+        "C:\ffmpeg",
+        "C:\Program Files\ffmpeg"
+    )
+
+    foreach ($root in $roots) {
+        if (-not (Test-Path $root)) {
+            continue
+        }
+
+        $found = Get-ChildItem `
+            -Path $root `
+            -Filter ffmpeg.exe `
+            -Recurse `
+            -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+
+        if ($found) {
+            return $found.FullName
+        }
+    }
+
+    return $null
+}
 
 Write-Host ""
-Write-Host "[Activation] Connecting this computer to C-Net AI Studio..."
+Write-Host "=============================================================="
+Write-Host " C-Net AI Studio Dedicated Worker V5.1"
+Write-Host " VERIFIED WINDOWS INSTALLER"
+Write-Host "=============================================================="
 
 $ConfigPath = Join-Path $Root "config.json"
+$ExamplePath = Join-Path $Root "config.example.json"
 
 if (-not (Test-Path $ConfigPath)) {
-    Copy-Item `
-      (Join-Path $Root "config.example.json") `
-      $ConfigPath
+    Copy-Item $ExamplePath $ConfigPath -Force
 }
 
 $Config = Get-Content $ConfigPath -Raw | ConvertFrom-Json
 
 if ([string]::IsNullOrWhiteSpace($Config.worker_token)) {
 
-    $ActivationCode = Read-Host `
-      "Enter the one-time Activation Code from Master Admin"
+    Write-Host ""
+    Write-Host "[Activation] This computer needs one-time activation."
 
-    if ([string]::IsNullOrWhiteSpace($ActivationCode)) {
+    $Activation = Read-Host `
+        "Enter Activation Code from Master Admin"
+
+    if ([string]::IsNullOrWhiteSpace($Activation)) {
         throw "Activation code cannot be blank."
     }
 
-    $Config.activation_code = $ActivationCode.Trim()
+    $Config.activation_code = $Activation.Trim()
 
     $Config |
-      ConvertTo-Json -Depth 10 |
-      Set-Content `
-        -Path $ConfigPath `
-        -Encoding UTF8
+        ConvertTo-Json -Depth 10 |
+        Set-Content `
+            -Path $ConfigPath `
+            -Encoding UTF8
 }
 
-
-Write-Host "[1/7] Checking Python..."
+Write-Host ""
+Write-Host "[1/6] Checking Python..."
 
 if (-not (Command-Exists "python")) {
-    Write-Host "Python not found."
 
-    if (Command-Exists "winget") {
-        Write-Host "Installing Python automatically..."
-        winget install `
-          --id Python.Python.3.12 `
-          -e `
-          --accept-package-agreements `
-          --accept-source-agreements
-
-        $env:Path = [System.Environment]::GetEnvironmentVariable(
-            "Path",
-            "Machine"
-        ) + ";" + [System.Environment]::GetEnvironmentVariable(
-            "Path",
-            "User"
-        )
+    if (-not (Command-Exists "winget")) {
+        throw "Python is missing and Windows Package Manager (winget) is unavailable."
     }
+
+    Write-Host "Installing Python 3.12..."
+
+    winget install `
+        --id Python.Python.3.12 `
+        -e `
+        --silent `
+        --accept-package-agreements `
+        --accept-source-agreements
+
+    Refresh-Path
 }
 
 if (-not (Command-Exists "python")) {
-    throw "Python could not be installed automatically."
+    throw "Python installation failed or Python is not available in PATH."
 }
 
 python --version
 
+if ($LASTEXITCODE -ne 0) {
+    throw "Python verification failed."
+}
+
 Write-Host ""
-Write-Host "[2/7] Installing Python packages..."
+Write-Host "[2/6] Installing Python dependencies..."
 
 python -m pip install --upgrade pip
+
+if ($LASTEXITCODE -ne 0) {
+    throw "pip upgrade failed."
+}
+
 python -m pip install -r requirements.txt
 
-Write-Host ""
-Write-Host "[3/7] Checking FFmpeg..."
+if ($LASTEXITCODE -ne 0) {
+    throw "Worker dependency installation failed."
+}
 
-if (-not (Command-Exists "ffmpeg")) {
+Write-Host ""
+Write-Host "[3/6] Checking FFmpeg..."
+
+$FFmpeg = Find-FFmpeg
+
+if (-not $FFmpeg) {
 
     if (Command-Exists "winget") {
-        Write-Host "Installing FFmpeg automatically..."
+
+        Write-Host "FFmpeg not found. Installing automatically..."
+
+        winget source update | Out-Null
 
         winget install `
-          --id Gyan.FFmpeg `
-          -e `
-          --accept-package-agreements `
-          --accept-source-agreements
+            --id Gyan.FFmpeg `
+            -e `
+            --silent `
+            --accept-package-agreements `
+            --accept-source-agreements
 
-        $env:Path = [System.Environment]::GetEnvironmentVariable(
-            "Path",
-            "Machine"
-        ) + ";" + [System.Environment]::GetEnvironmentVariable(
-            "Path",
-            "User"
-        )
+        Refresh-Path
+
+        Start-Sleep -Seconds 3
+
+        $FFmpeg = Find-FFmpeg
     }
 }
 
-if (-not (Command-Exists "ffmpeg")) {
-    Write-Warning "FFmpeg was not detected after automatic setup."
-    Write-Warning "Worker can register but video rendering may fail."
+if ($FFmpeg) {
+    Write-Host "FFmpeg detected:"
+    Write-Host $FFmpeg
+
+    & $FFmpeg -version |
+        Select-Object -First 1
 }
 else {
-    ffmpeg -version | Select-Object -First 1
+    Write-Warning "FFmpeg could not be installed/detected."
+    Write-Warning "Activation can continue, but video rendering will remain unavailable."
 }
 
 Write-Host ""
-Write-Host "[4/7] Creating workspace..."
+Write-Host "[4/6] Creating workspace..."
 
 New-Item `
-  -ItemType Directory `
-  -Force `
-  -Path (Join-Path $Root "workspace") `
-  | Out-Null
+    -ItemType Directory `
+    -Force `
+    -Path (Join-Path $Root "workspace") |
+    Out-Null
 
 Write-Host ""
-Write-Host "[5/7] Running system check..."
+Write-Host "[5/6] Running hardware check..."
 
 python worker-check.py
 
+if ($LASTEXITCODE -ne 0) {
+    throw "Hardware/system check failed."
+}
+
 Write-Host ""
-Write-Host "[6/7] Creating desktop shortcuts..."
+Write-Host "[6/6] Running REAL activation and API verification..."
+Write-Host ""
+
+python worker.py --self-test
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "=============================================================="
+    Write-Host " C-NET AI WORKER INSTALLATION FAILED"
+    Write-Host "=============================================================="
+    Write-Host "The worker was NOT verified."
+    Write-Host "Do not treat this installation as complete."
+    Write-Host "=============================================================="
+    throw "Worker activation/self-test failed."
+}
+
+Write-Host ""
+Write-Host "Creating Desktop shortcut..."
 
 $Desktop = [Environment]::GetFolderPath("Desktop")
-
-$StartShortcut = Join-Path $Desktop "C-Net AI Worker.lnk"
+$ShortcutPath = Join-Path $Desktop "C-Net AI Worker.lnk"
 
 $Shell = New-Object -ComObject WScript.Shell
-$Shortcut = $Shell.CreateShortcut($StartShortcut)
+$Shortcut = $Shell.CreateShortcut($ShortcutPath)
+
 $Shortcut.TargetPath = "powershell.exe"
-$Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$Root\start-worker.ps1`""
+$Shortcut.Arguments = `
+    "-NoProfile -ExecutionPolicy Bypass -File `"$Root\start-worker.ps1`""
+
 $Shortcut.WorkingDirectory = $Root
 $Shortcut.Save()
 
 Write-Host ""
-Write-Host "[7/7] Installation complete."
+Write-Host "=============================================================="
+Write-Host " C-NET AI WORKER V5.1 INSTALLATION VERIFIED SUCCESS"
+Write-Host "=============================================================="
+Write-Host " Activation       = PASS"
+Write-Host " Device Credential= PASS"
+Write-Host " API Authentication= PASS"
+Write-Host " Heartbeat        = PASS"
 
-Write-Host ""
-Write-Host "========================================================="
-Write-Host " C-NET AI WORKER INSTALLATION COMPLETE"
-Write-Host "========================================================="
-Write-Host ""
-Write-Host "Desktop shortcut created: C-Net AI Worker"
-Write-Host ""
-Write-Host "Starting worker connectivity test..."
-Write-Host ""
+if ($FFmpeg) {
+    Write-Host " FFmpeg           = READY"
+}
+else {
+    Write-Host " FFmpeg           = NOT READY"
+}
 
-python worker.py --once
-
+Write-Host " Desktop Shortcut = CREATED"
+Write-Host "=============================================================="
 Write-Host ""
-Write-Host "If registration succeeded, setup is complete."
+Write-Host "The computer should now appear in Master Admin > AI Workers."
 Write-Host ""
 
 Read-Host "Press Enter to finish"
