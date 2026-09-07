@@ -1,34 +1,16 @@
-C-NET AI STUDIO WORKER V5.1
+C-NET AI STUDIO WORKER V5.2
 
-IMPORTANT:
-Use a fresh extracted copy of this ZIP.
+1. Delete any previously extracted Worker folder.
+2. Download a fresh Worker ZIP from Master Admin.
+3. Generate a NEW one-time Activation Code.
+4. Extract ZIP.
+5. Double-click INSTALL-C-NET-AI-WORKER.cmd.
+6. Enter the NEW activation code.
 
-STEP 1
-Master Admin > AI Worker Management
-Generate a NEW one-time Activation Code.
+Installation is successful only when the screen displays:
 
-STEP 2
-Extract this ZIP on the Windows computer.
+C-NET AI WORKER V5.2 INSTALLATION VERIFIED SUCCESS
 
-STEP 3
-Double-click:
-
-INSTALL-C-NET-AI-WORKER.cmd
-
-STEP 4
-Enter the one-time Activation Code when requested.
-
-The installer is successful ONLY if it displays:
-
-C-NET AI WORKER V5.1 INSTALLATION VERIFIED SUCCESS
-
-and the worker appears in:
+Then confirm the computer appears in:
 
 Master Admin > AI Worker Management > Registered Workers
-
-After installation, start continuous processing with:
-
-START-C-NET-AI-WORKER.cmd
-
-No database password, GitHub password, or server worker token
-needs to be manually entered on the Windows computer.
