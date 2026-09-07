@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class AIToolDocument extends Model
 {
+    protected $table = 'ai_tool_documents';
+
     protected $guarded = [];
 
     protected $casts = ['content' => 'array'];
