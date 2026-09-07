@@ -14,4 +14,9 @@ class UserSubscription extends Model
         'cancelled_at' => 'datetime',
         'metadata' => 'array',
     ];
+
+    public function plan()
+    {
+        return $this->belongsTo(SubscriptionPlan::class, 'subscription_plan_id');
+    }
 }

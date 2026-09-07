@@ -41,10 +41,11 @@ button{padding:13px 18px;border:0;border-radius:12px;background:linear-gradient(
 <a href="#">AI Video</a>
 <a href="#">Image Studio</a>
 <a href="#">Audio & Voice</a>
-<a href="#">AI Tools</a>
+<a href="{{ route('studio.smart-tools') }}">AI Tools</a>
 <a href="{{ route('projects.index') }}">My Projects</a>
 <a href="{{ route('studio.templates') }}">Templates</a>
 <a href="{{ route('studio.outputs') }}">Exports</a>
+<a href="{{ route('studio.billing') }}">Plan & Usage</a>
 
 @if($user->isAdmin())
 <a href="{{ route('admin.dashboard') }}">Master Admin</a>
@@ -122,9 +123,9 @@ Subscription Required
 <div class="tool"><b>Image to Video</b><p>Animate images and create cinematic or promotional visual sequences.</p><button onclick="launchTool('image-to-video','16:9')">Animate →</button></div>
 <div class="tool"><b>Business Ad Studio</b><p>Create branded advertisements for businesses and institutions.</p><button onclick="launchTool('business-ad','16:9')">Build Ad →</button></div>
 <div class="tool"><b>Smart Reels</b><p>Vertical short-form videos with smart captions and sequencing.</p><button onclick="launchTool('reel','9:16')">Create Reel →</button></div>
-<div class="tool"><b>AI Voice Studio</b><p>Voiceover, narration and multilingual audio workflows.</p><span class="link">Open Voice →</span></div>
+<div class="tool"><b>AI Voice Studio</b><p>Voiceover, narration and multilingual audio workflows.</p><a class="link" href="{{ route('studio.smart-tools') }}">Open Voice →</a></div>
 <div class="tool"><b>Image AI</b><p>Thumbnails, backgrounds, enhancement and creative composition.</p><span class="link">Open Image AI →</span></div>
-<div class="tool"><b>Auto Captions</b><p>Subtitle generation and synchronized caption workflows.</p><span class="link">Generate →</span></div>
+<div class="tool"><b>Auto Captions</b><p>Subtitle generation and synchronized caption workflows.</p><a class="link" href="{{ route('studio.smart-tools') }}">Generate →</a></div>
 <div class="tool"><b>Pro Timeline Editor</b><p>Tracks, layers, titles, transitions, audio and effects.</p><button onclick="launchTool('video','16:9')">Open Editor →</button></div>
 </div>
 

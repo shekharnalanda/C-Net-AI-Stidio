@@ -10,19 +10,22 @@ Route::get('/v1/health', function () {
         'ok' => true,
         'product' => 'C-Net AI Studio',
         'version' => 'V3',
+        'release' => 'batch-11',
         'worker_protocol' => 'V5',
         'worker_auth' => 'per-device',
         'worker_architecture' => 'distributed',
         'mandatory_paid_ai' => false,
+        'capabilities' => ['smart-tools', 'engine-registry', 'usage-metering', 'secure-worker-v5'],
     ]);
 });
 
 Route::post(
     '/v1/workers/activate',
     [WorkerProvisioningController::class, 'activate']
-);
+)->middleware('throttle:10,1');
 
 Route::middleware(WorkerTokenMiddleware::class)
+    ->middleware('throttle:120,1')
     ->prefix('v1/workers')
     ->group(function () {
         Route::post('/register', [WorkerController::class, 'register']);

@@ -58,4 +58,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(StudioProject::class);
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
 }

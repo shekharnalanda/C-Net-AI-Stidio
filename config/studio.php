@@ -37,5 +37,11 @@ return [
         'cloud_projects' => true,
         'subscription_ready' => true,
         'license_ready' => true,
+        'smart_scripts' => true,
+        'scene_builder' => true,
+        'caption_builder' => true,
+        'engine_registry' => true,
+        'usage_metering' => true,
+        'security_audit' => true,
     ],
 ];

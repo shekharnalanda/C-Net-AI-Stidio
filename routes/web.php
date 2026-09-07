@@ -11,6 +11,8 @@ use App\Http\Controllers\Studio\WorkerManagementController;
 use App\Http\Controllers\Studio\TemplateController;
 use App\Http\Controllers\Studio\WorkspaceController;
 use App\Http\Controllers\Studio\OutputController;
+use App\Http\Controllers\Studio\SmartToolController;
+use App\Http\Controllers\Studio\BillingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,10 +21,10 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.perform');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.perform');
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.perform');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('register.perform');
 });
 
 Route::middleware('auth')->group(function () {
@@ -30,6 +32,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/studio', [DashboardController::class, 'index'])
         ->name('studio.dashboard');
+
+    Route::get('/studio/ai-tools', [SmartToolController::class, 'index'])->name('studio.smart-tools');
+    Route::post('/studio/ai-tools', [SmartToolController::class, 'generate'])->middleware('throttle:30,1')->name('studio.smart-tools.generate');
+    Route::get('/studio/ai-tools/{document}', [SmartToolController::class, 'show'])->name('studio.smart-tools.show');
+    Route::get('/studio/billing', [BillingController::class, 'index'])->name('studio.billing');
 
     Route::get('/studio/projects', [ProjectController::class, 'index'])
         ->name('projects.index');

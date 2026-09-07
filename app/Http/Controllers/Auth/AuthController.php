@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserSubscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\SecurityAuditEvent;
 
 class AuthController extends Controller
 {
@@ -28,6 +29,7 @@ class AuthController extends Controller
         ]);
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            $this->audit($request, 'auth.login_failed', 'warning', ['email_hash' => hash('sha256', strtolower($credentials['email']))]);
             return back()
                 ->withErrors(['email' => 'Invalid email or password.'])
                 ->onlyInput('email');
@@ -38,6 +40,8 @@ class AuthController extends Controller
         $request->user()->update([
             'last_login_at' => now(),
         ]);
+
+        $this->audit($request, 'auth.login_succeeded');
 
         return redirect()->intended(route('studio.dashboard'));
     }
@@ -74,6 +78,8 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        $this->audit($request, 'auth.registered');
+
         return redirect()
             ->route('studio.dashboard')
             ->with('success', 'Your 7-day free trial is now active.');
@@ -81,11 +87,28 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $this->audit($request, 'auth.logout');
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route('studio.home');
+    }
+
+    private function audit(Request $request, string $event, string $severity = 'info', array $context = []): void
+    {
+        try {
+            SecurityAuditEvent::create([
+                'user_id' => $request->user()?->id,
+                'event' => $event,
+                'severity' => $severity,
+                'ip_hash' => hash_hmac('sha256', (string) $request->ip(), (string) config('app.key')),
+                'request_id' => $request->headers->get('X-Request-ID'),
+                'context' => $context,
+            ]);
+        } catch (\Throwable) {
+            // Authentication must remain available during zero-downtime migrations.
+        }
     }
 }
