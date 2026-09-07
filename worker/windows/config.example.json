@@ -2,6 +2,7 @@
   "studio_url": "https://studio.mciedu.com",
   "activation_code": "",
   "worker_token": "",
+  "worker_uuid": "",
   "worker_name": "C-Net AI Worker",
   "poll_seconds": 10,
   "workspace": "workspace"

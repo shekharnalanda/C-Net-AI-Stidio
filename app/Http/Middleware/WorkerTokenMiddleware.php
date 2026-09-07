@@ -10,11 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class WorkerTokenMiddleware
 {
-    public function handle(
-        Request $request,
-        Closure $next,
-        WorkerCredentialService $credentials
-    ): Response {
+    public function __construct(
+        protected WorkerCredentialService $credentials
+    ) {
+    }
+
+    public function handle(Request $request, Closure $next): Response
+    {
         $uuid = (string) $request->input('worker_uuid');
         $token = (string) $request->bearerToken();
 
@@ -27,14 +29,17 @@ class WorkerTokenMiddleware
 
         $worker = AIWorker::where('worker_uuid', $uuid)->first();
 
-        if (! $worker || ! $credentials->verify($worker, $token)) {
+        if (! $worker || ! $this->credentials->verify($worker, $token)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Invalid or disabled worker credential.',
             ], 401);
         }
 
-        $request->attributes->set('authenticated_worker', $worker);
+        $request->attributes->set(
+            'authenticated_worker',
+            $worker
+        );
 
         return $next($request);
     }

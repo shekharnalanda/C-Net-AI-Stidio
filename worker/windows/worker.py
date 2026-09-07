@@ -28,8 +28,16 @@ def load_config():
 
 CONFIG = load_config()
 
+
+def save_config():
+    CONFIG_PATH.write_text(
+        json.dumps(CONFIG, indent=2),
+        encoding="utf-8"
+    )
+
+
 BASE_URL = CONFIG["studio_url"].rstrip("/")
-TOKEN = CONFIG["worker_token"]
+TOKEN = CONFIG.get("worker_token", "")
 POLL_SECONDS = max(5, int(CONFIG.get("poll_seconds", 10)))
 
 WORKSPACE = ROOT / CONFIG.get("workspace", "workspace")
@@ -52,7 +60,7 @@ WORKER_UUID = worker_uuid()
 
 def headers():
     return {
-        "Authorization": f"Bearer {TOKEN}",
+        "Authorization": f"Bearer {CONFIG.get('worker_token', '')}",
         "Accept": "application/json",
         "Content-Type": "application/json",
         "User-Agent": "C-Net-AI-Worker/4.0",
@@ -137,6 +145,60 @@ def system_capabilities():
             "reels": True
         }
     }
+
+
+
+def activate_worker():
+    activation_code = (
+        CONFIG.get("activation_code") or ""
+    ).strip()
+
+    if CONFIG.get("worker_token"):
+        return
+
+    if not activation_code:
+        raise RuntimeError(
+            "Worker is not activated. "
+            "Enter the one-time activation code during installation."
+        )
+
+    payload = system_capabilities()
+    payload["activation_code"] = activation_code
+
+    response = requests.post(
+        BASE_URL + "/api/v1/workers/activate",
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "User-Agent": "C-Net-AI-Worker/5.0",
+        },
+        json=payload,
+        timeout=60,
+    )
+
+    response.raise_for_status()
+    data = response.json()
+
+    if not data.get("ok"):
+        raise RuntimeError(
+            data.get("message", "Worker activation failed.")
+        )
+
+    CONFIG["worker_token"] = data["worker_token"]
+    CONFIG["worker_uuid"] = data["worker_uuid"]
+    CONFIG["activation_code"] = ""
+
+    UUID_PATH.write_text(
+        data["worker_uuid"],
+        encoding="utf-8"
+    )
+
+    save_config()
+
+    print(
+        f"[ACTIVATED] worker={data['worker_uuid']} "
+        f"id={data['worker_id']}"
+    )
 
 
 def register():
@@ -338,6 +400,7 @@ def main():
     print(f"Host   : {socket.gethostname()}")
     print("======================================================")
 
+    activate_worker()
     register()
 
     while True:

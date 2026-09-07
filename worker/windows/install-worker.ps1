@@ -14,6 +14,39 @@ function Command-Exists($cmd) {
     return [bool](Get-Command $cmd -ErrorAction SilentlyContinue)
 }
 
+
+Write-Host ""
+Write-Host "[Activation] Connecting this computer to C-Net AI Studio..."
+
+$ConfigPath = Join-Path $Root "config.json"
+
+if (-not (Test-Path $ConfigPath)) {
+    Copy-Item `
+      (Join-Path $Root "config.example.json") `
+      $ConfigPath
+}
+
+$Config = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+
+if ([string]::IsNullOrWhiteSpace($Config.worker_token)) {
+
+    $ActivationCode = Read-Host `
+      "Enter the one-time Activation Code from Master Admin"
+
+    if ([string]::IsNullOrWhiteSpace($ActivationCode)) {
+        throw "Activation code cannot be blank."
+    }
+
+    $Config.activation_code = $ActivationCode.Trim()
+
+    $Config |
+      ConvertTo-Json -Depth 10 |
+      Set-Content `
+        -Path $ConfigPath `
+        -Encoding UTF8
+}
+
+
 Write-Host "[1/7] Checking Python..."
 
 if (-not (Command-Exists "python")) {
