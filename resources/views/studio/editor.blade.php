@@ -6,86 +6,92 @@
 <title>{{ $project->name }} | C-Net AI Studio</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#05070d;color:#fff;font-family:Inter,system-ui,Arial;overflow:hidden}
-.app{height:100vh;display:grid;grid-template-rows:62px 1fr 230px}
-.top{display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#0a0f1b;border-bottom:1px solid #1a2437}
-.brand{font-weight:900;font-size:19px}.brand span{color:#59ddff}
-.actions{display:flex;gap:8px}
-button,.btn{border:0;padding:10px 14px;border-radius:10px;background:#182238;color:white;font-weight:700;text-decoration:none;cursor:pointer}
-.primary{background:linear-gradient(90deg,#04c9ff,#7162ff,#d94ce8)}
-.workspace{display:grid;grid-template-columns:260px 1fr 300px;min-height:0}
-.left,.right{background:#090e18;padding:14px;overflow:auto}
-.left{border-right:1px solid #182235}.right{border-left:1px solid #182235}
-.center{background:#020407;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
-.canvas{width:min(820px,90%);aspect-ratio:16/9;background:radial-gradient(circle at 70% 20%,#432963 0,transparent 35%),linear-gradient(135deg,#101c34,#080d18);border:1px solid #27314a;border-radius:12px;box-shadow:0 30px 100px #000;display:grid;place-items:center;text-align:center}
-.canvas h2{font-size:32px;margin:0}
-.section{margin-bottom:20px}.section h3{font-size:13px;text-transform:uppercase;color:#7788a5;letter-spacing:.08em}
-.tool{display:block;padding:11px;background:#111928;border:1px solid #1d2a41;border-radius:10px;margin:7px 0;color:white;text-decoration:none}
-input,textarea,select{width:100%;padding:11px;border-radius:9px;border:1px solid #283751;background:#090f1c;color:white;margin:5px 0}
-textarea{min-height:120px;resize:vertical}
-.media{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.media-item{height:85px;background:#111b2b;border:1px solid #22304a;border-radius:9px;display:grid;place-items:center;font-size:12px;text-align:center;overflow:hidden}
-.media-item img{width:100%;height:100%;object-fit:cover}
-.timeline{background:#090e18;border-top:1px solid #1b2639;padding:12px;overflow:auto}
-.timeline-head{display:flex;justify-content:space-between;margin-bottom:10px;color:#8595b0}
-.track{height:42px;background:#0c1423;border:1px solid #19263c;border-radius:8px;margin:6px 0;display:flex;align-items:center}
-.track-name{width:85px;padding-left:10px;color:#8292ad;font-size:12px}
-.clip{height:30px;min-width:180px;margin-left:5px;border-radius:6px;background:linear-gradient(90deg,#174c70,#493b87);display:flex;align-items:center;padding:0 9px;font-size:12px}
-.success{padding:9px;background:#103321;color:#7ef0a6;border-radius:8px;margin-bottom:10px}
-.job{font-size:12px;padding:9px;background:#101827;border-radius:8px;margin:6px 0}
-.status{color:#5fe0ff}
-@media(max-width:1000px){.workspace{grid-template-columns:210px 1fr}.right{display:none}}
+body{margin:0;background:#03050a;color:#fff;font-family:Inter,system-ui,Arial;overflow:hidden}
+.app{height:100vh;display:grid;grid-template-rows:64px 1fr 240px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#080d17;border-bottom:1px solid #1a263b}
+.brand{font-weight:900;font-size:19px}.brand span{color:#61ddff}.sub{font-size:11px;color:#7f8da7}
+.actions{display:flex;gap:8px;align-items:center}
+button,.btn{border:0;padding:10px 13px;border-radius:9px;background:#172238;color:white;font-weight:700;text-decoration:none;cursor:pointer}
+.primary{background:linear-gradient(90deg,#02c7ff,#7360ff,#df4ddd)}
+.workspace{display:grid;grid-template-columns:285px 1fr 310px;min-height:0}
+.left,.right{background:#080d17;padding:13px;overflow:auto}.left{border-right:1px solid #182338}.right{border-left:1px solid #182338}
+.center{background:#010204;display:flex;align-items:center;justify-content:center;padding:22px;overflow:auto}
+.canvas{width:min(850px,92%);aspect-ratio:16/9;background:radial-gradient(circle at 75% 15%,#48276e 0,transparent 34%),linear-gradient(135deg,#102449,#070b14);border:1px solid #263550;border-radius:15px;box-shadow:0 35px 110px #000;display:grid;place-items:center;text-align:center;position:relative}
+.canvas h2{font-size:34px;margin:4px}.badge{position:absolute;top:12px;left:12px;padding:7px 10px;border-radius:8px;background:#091321cc;font-size:10px;color:#75e0ff}
+.section{margin-bottom:19px}.section h3{font-size:11px;text-transform:uppercase;color:#7b8aa5;letter-spacing:.09em}
+.tabs{display:flex;gap:5px;margin-bottom:12px}.tab{flex:1;padding:9px 4px;font-size:11px}.tab.active{background:#213250;color:#71e0ff}
+.panel{display:none}.panel.active{display:block}
+input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid #263752;background:#080f1c;color:white;margin:4px 0}
+textarea{min-height:115px;resize:vertical}
+label{font-size:11px;color:#8392aa}
+.media{display:grid;grid-template-columns:1fr 1fr;gap:7px}.media-item{height:82px;background:#101929;border:1px solid #21304a;border-radius:8px;display:grid;place-items:center;font-size:11px;overflow:hidden}.media-item img{width:100%;height:100%;object-fit:cover}
+.job{padding:9px;background:#101827;border-radius:8px;margin:6px 0;font-size:11px}.status{color:#5ce0ff}
+.progress{height:4px;background:#202c40;border-radius:8px;margin-top:6px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,#00d0ff,#9b59ff);width:0}
+.timeline{background:#080d17;border-top:1px solid #1b273b;padding:11px;overflow:auto}
+.timeline-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:#8190a9}
+.track{height:39px;background:#0c1423;border:1px solid #18263a;border-radius:7px;margin:5px 0;display:flex;align-items:center}.track-name{width:90px;padding-left:9px;color:#8291aa;font-size:11px}.clip{height:28px;min-width:210px;border-radius:6px;background:linear-gradient(90deg,#174c70,#4b3d88);display:flex;align-items:center;padding:0 9px;font-size:11px}
+.success{padding:8px;background:#103321;color:#7ceea4;border-radius:8px;margin-bottom:8px}
+.save-state{font-size:11px;color:#74dda0}
+.brand-preview{padding:10px;border:1px solid #253651;border-radius:9px;background:#0c1525;margin-top:7px}
+@media(max-width:1050px){.workspace{grid-template-columns:230px 1fr}.right{display:none}}
 </style>
 </head>
 <body>
-
 <div class="app">
 
 <header class="top">
 <div>
-<div class="brand">C-Net <span>AI Studio</span></div>
-<div style="font-size:12px;color:#8090aa">{{ $project->name }}</div>
+<div class="brand">C-Net <span>AI Studio</span> <small style="color:#667691">V4 Workspace</small></div>
+<div class="sub">{{ strtoupper(str_replace('-',' ',$project->type)) }} • {{ $project->name }}</div>
 </div>
 
 <div class="actions">
+<span id="saveState" class="save-state">Ready</span>
+<a class="btn" href="{{ route('studio.templates') }}">Templates</a>
 <a class="btn" href="{{ route('projects.index') }}">Projects</a>
-<a class="btn" href="{{ route('studio.dashboard') }}">Dashboard</a>
-<button class="primary" form="project-settings">Save Project</button>
+<form method="POST" action="{{ route('projects.duplicate',$project) }}">
+@csrf
+<button type="submit">Duplicate</button>
+</form>
+<button class="primary" form="project-settings">Save</button>
 </div>
 </header>
 
 <div class="workspace">
 
 <aside class="left">
+@if(session('success'))<div class="success">{{ session('success') }}</div>@endif
 
-@if(session('success'))
-<div class="success">{{ session('success') }}</div>
-@endif
+<div class="tabs">
+<button class="tab active" data-tab="create">Create</button>
+<button class="tab" data-tab="media">Media</button>
+<button class="tab" data-tab="brand">Brand</button>
+</div>
 
+<div id="panel-create" class="panel active">
 <div class="section">
-<h3>AI Creation</h3>
+<h3>AI Creation Engine</h3>
 
 <form method="POST" action="{{ route('projects.generate',$project) }}">
 @csrf
 
-<textarea name="prompt" placeholder="Describe what you want C-Net AI Studio to create..." required>{{ $project->prompt }}</textarea>
+<textarea name="prompt" placeholder="Describe your video, advertisement, reel or story..." required>{{ $project->prompt }}</textarea>
 
+<label>Duration</label>
 <select name="duration">
-<option value="15">15 seconds</option>
-<option value="30" selected>30 seconds</option>
-<option value="45">45 seconds</option>
-<option value="60">60 seconds</option>
-<option value="90">90 seconds</option>
+@foreach([15,30,45,60,90,120] as $seconds)
+<option value="{{ $seconds }}" @selected(($project->generation_settings['duration'] ?? 30)===$seconds)>{{ $seconds }} seconds</option>
+@endforeach
 </select>
 
-<select name="style">
-<option value="professional">Professional</option>
-<option value="cinematic">Cinematic</option>
-<option value="corporate">Corporate</option>
-<option value="education">Education</option>
-<option value="social">Social Media</option>
+<label>Creative Style</label>
+<select name="style" id="generationStyle">
+@foreach(['professional','cinematic','corporate','education','social'] as $style)
+<option value="{{ $style }}" @selected(($project->generation_settings['style'] ?? 'professional')===$style)>{{ ucfirst($style) }}</option>
+@endforeach
 </select>
 
+<label>Voice</label>
 <select name="voice">
 <option value="auto">Auto Voice</option>
 <option value="male">Male Voice</option>
@@ -93,31 +99,31 @@ textarea{min-height:120px;resize:vertical}
 <option value="none">No Voice</option>
 </select>
 
-<button class="primary" style="width:100%;margin-top:7px">Generate with AI</button>
+<button class="primary" style="width:100%;margin-top:7px">✦ Generate with AI</button>
 </form>
 </div>
 
 <div class="section">
-<h3>Tools</h3>
-<a class="tool">▶ Text to Video</a>
-<a class="tool">▧ Image to Video</a>
-<a class="tool">◉ Business Ad</a>
-<a class="tool">✦ Smart Reel</a>
-<a class="tool">♫ Voice & Audio</a>
-<a class="tool">CC Auto Captions</a>
+<h3>Smart Creative Tools</h3>
+<button style="width:100%;margin:3px 0">Script Assistant</button>
+<button style="width:100%;margin:3px 0">Scene Planner</button>
+<button style="width:100%;margin:3px 0">Auto Captions</button>
+<button style="width:100%;margin:3px 0">Voice & Audio</button>
+<button style="width:100%;margin:3px 0">Smart Resize</button>
+</div>
 </div>
 
+<div id="panel-media" class="panel">
 <div class="section">
 <h3>Media Library</h3>
-
 <form method="POST" action="{{ route('media.store',$project) }}" enctype="multipart/form-data">
 @csrf
 <input type="file" name="media" required>
 <button style="width:100%">Upload Media</button>
 </form>
 
-<div class="media" style="margin-top:10px">
-@foreach($media as $item)
+<div class="media" style="margin-top:9px">
+@forelse($media as $item)
 <div class="media-item">
 @if($item->media_type === 'image')
 <img src="{{ asset('storage/'.$item->path) }}">
@@ -125,36 +131,60 @@ textarea{min-height:120px;resize:vertical}
 {{ strtoupper($item->media_type) }}
 @endif
 </div>
-@endforeach
+@empty
+<div style="color:#73829c;font-size:12px">No uploaded media yet.</div>
+@endforelse
+</div>
+</div>
 </div>
 
+<div id="panel-brand" class="panel">
+<div class="section">
+<h3>Brand Kit</h3>
+<label>Brand / Business Name</label>
+<input id="brandName" value="{{ $project->brand_settings['name'] ?? '' }}" placeholder="Your brand name">
+
+<label>Primary Brand Color</label>
+<input id="brandColor" type="color" value="{{ $project->brand_settings['primary_color'] ?? '#25cfff' }}">
+
+<label>Call To Action</label>
+<input id="brandCta" value="{{ $project->brand_settings['cta'] ?? '' }}" placeholder="Admissions Open / Call Now / Shop Now">
+
+<label>Website / Contact</label>
+<input id="brandContact" value="{{ $project->brand_settings['contact'] ?? '' }}" placeholder="Website or phone">
+
+<div class="brand-preview">
+<div class="sub">BRAND PREVIEW</div>
+<strong id="brandPreviewName">{{ $project->brand_settings['name'] ?? 'Your Brand' }}</strong>
+</div>
+
+<button type="button" class="primary" style="width:100%;margin-top:8px" onclick="saveWorkspace()">Save Brand Kit</button>
+</div>
 </div>
 </aside>
 
 <main class="center">
-
 <div class="canvas" id="previewCanvas">
+<div class="badge">LIVE CREATIVE PREVIEW</div>
 <div>
-<div style="font-size:13px;color:#7485a2">LIVE CREATIVE PREVIEW</div>
-<h2>{{ $project->name }}</h2>
-<p style="color:#93a2bd">
-{{ strtoupper(str_replace('-', ' ', $project->type)) }} •
+<div class="sub">C-NET AI STUDIO</div>
+<h2 id="previewTitle">{{ $project->name }}</h2>
+<p style="color:#94a3bd">
+{{ strtoupper(str_replace('-',' ',$project->type)) }} •
 {{ $project->aspect_ratio }} •
 {{ strtoupper($project->quality) }}
 </p>
-<div style="margin-top:22px;color:#64dcff">
-AI-FIRST EDITOR V3
+<div id="previewBrand" style="margin-top:17px;color:#65ddff">
+{{ $project->brand_settings['name'] ?? 'AI-FIRST CREATIVE WORKSPACE' }}
 </div>
 </div>
 </div>
-
 </main>
 
 <aside class="right">
 
 <div class="section">
 <h3>Project Settings</h3>
-
 <form id="project-settings" method="POST" action="{{ route('projects.update',$project) }}">
 @csrf
 @method('PUT')
@@ -163,7 +193,7 @@ AI-FIRST EDITOR V3
 <input name="name" value="{{ $project->name }}" required>
 
 <label>Aspect Ratio</label>
-<select name="aspect_ratio">
+<select name="aspect_ratio" id="ratioSelect">
 <option @selected($project->aspect_ratio==='16:9') value="16:9">16:9 Landscape</option>
 <option @selected($project->aspect_ratio==='9:16') value="9:16">9:16 Vertical</option>
 <option @selected($project->aspect_ratio==='1:1') value="1:1">1:1 Square</option>
@@ -196,14 +226,17 @@ AI-FIRST EDITOR V3
 <div class="section">
 <h3>AI Job Queue</h3>
 
+<div id="jobsContainer">
 @forelse($jobs as $job)
-<div class="job">
+<div class="job" data-job="{{ $job->id }}" data-url="{{ route('jobs.status',$job) }}">
 <div>{{ strtoupper(str_replace('-',' ',$job->job_type)) }}</div>
-<div class="status">{{ strtoupper($job->status) }} • {{ $job->progress }}%</div>
+<div class="status job-status">{{ strtoupper($job->status) }} • <span>{{ $job->progress }}</span>%</div>
+<div class="progress"><span style="width:{{ $job->progress }}%"></span></div>
 </div>
 @empty
-<div style="color:#71829f;font-size:13px">No AI jobs yet.</div>
+<div style="color:#71819c;font-size:12px">No AI jobs yet.</div>
 @endforelse
+</div>
 </div>
 
 </aside>
@@ -211,45 +244,126 @@ AI-FIRST EDITOR V3
 
 <div class="timeline">
 <div class="timeline-head">
-<span>PRO TIMELINE</span>
-<span>00:00 / 00:30</span>
+<span>PRO MULTI-TRACK TIMELINE</span>
+<span id="timelineDuration">00:00 / {{ sprintf('%02d:%02d', intdiv(($project->timeline['duration'] ?? 30),60), (($project->timeline['duration'] ?? 30)%60)) }}</span>
 </div>
 
-<div class="track">
-<div class="track-name">VIDEO</div>
-<div class="clip">Main Video Track</div>
-</div>
+@php
+$tracks = $project->timeline['tracks'] ?? [
+['id'=>'video-1','type'=>'video','items'=>[]],
+['id'=>'text-1','type'=>'text','items'=>[]],
+['id'=>'audio-1','type'=>'audio','items'=>[]],
+];
+@endphp
 
+@foreach($tracks as $track)
 <div class="track">
-<div class="track-name">TEXT</div>
-<div class="clip">Titles / Captions</div>
+<div class="track-name">{{ strtoupper($track['type'] ?? 'TRACK') }}</div>
+<div class="clip">{{ ucfirst($track['type'] ?? 'Media') }} Track</div>
 </div>
-
-<div class="track">
-<div class="track-name">AUDIO</div>
-<div class="clip">Voice / Music</div>
-</div>
-
-<div class="track">
-<div class="track-name">EFFECTS</div>
-<div class="clip">Transitions / AI Effects</div>
-</div>
+@endforeach
 </div>
 
 </div>
 
 <script>
-const ratioSelect = document.querySelector('select[name="aspect_ratio"]');
+const csrf = @json(csrf_token());
+const autosaveUrl = @json(route('projects.autosave',$project));
+const currentTimeline = @json($project->timeline ?? []);
+const ratio = document.getElementById('ratioSelect');
 const canvas = document.getElementById('previewCanvas');
+const saveState = document.getElementById('saveState');
+
+document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+});
 
 function applyRatio() {
-    const ratio = ratioSelect?.value || '{{ $project->aspect_ratio }}';
-    canvas.style.aspectRatio = ratio.replace(':','/');
+    canvas.style.aspectRatio = (ratio?.value || '16:9').replace(':','/');
+}
+ratio?.addEventListener('change', applyRatio);
+applyRatio();
+
+document.querySelector('input[name="name"]')?.addEventListener('input', e => {
+    document.getElementById('previewTitle').textContent = e.target.value;
+});
+
+document.getElementById('brandName')?.addEventListener('input', e => {
+    document.getElementById('brandPreviewName').textContent = e.target.value || 'Your Brand';
+    document.getElementById('previewBrand').textContent = e.target.value || 'AI-FIRST CREATIVE WORKSPACE';
+});
+
+document.getElementById('brandColor')?.addEventListener('input', e => {
+    document.getElementById('previewBrand').style.color = e.target.value;
+});
+
+async function saveWorkspace() {
+    saveState.textContent = 'Saving...';
+
+    const body = {
+        timeline: currentTimeline,
+        brand_settings: {
+            name: document.getElementById('brandName')?.value || '',
+            primary_color: document.getElementById('brandColor')?.value || '#25cfff',
+            cta: document.getElementById('brandCta')?.value || '',
+            contact: document.getElementById('brandContact')?.value || ''
+        },
+        generation_settings: {
+            style: document.getElementById('generationStyle')?.value || 'professional'
+        }
+    };
+
+    try {
+        const res = await fetch(autosaveUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type':'application/json',
+                'Accept':'application/json',
+                'X-CSRF-TOKEN':csrf
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!res.ok) throw new Error('Save failed');
+
+        saveState.textContent = 'Saved';
+        setTimeout(() => saveState.textContent = 'Ready', 1800);
+    } catch(e) {
+        saveState.textContent = 'Save failed';
+    }
 }
 
-ratioSelect?.addEventListener('change', applyRatio);
-applyRatio();
-</script>
+setInterval(saveWorkspace, 60000);
 
+async function pollJobs() {
+    const jobs = document.querySelectorAll('.job[data-url]');
+
+    for (const el of jobs) {
+        try {
+            const res = await fetch(el.dataset.url, {
+                headers:{'Accept':'application/json'}
+            });
+
+            if (!res.ok) continue;
+
+            const data = await res.json();
+            const status = String(data.status || '').toUpperCase();
+            const progress = Number(data.progress || 0);
+
+            el.querySelector('.job-status').innerHTML =
+                status + ' • <span>' + progress + '</span>%';
+
+            el.querySelector('.progress span').style.width = progress + '%';
+        } catch(e) {}
+    }
+}
+
+setInterval(pollJobs, 5000);
+</script>
 </body>
 </html>

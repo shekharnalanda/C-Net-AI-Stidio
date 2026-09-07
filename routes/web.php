@@ -8,6 +8,8 @@ use App\Http\Controllers\Studio\MediaController;
 use App\Http\Controllers\Studio\ProjectController;
 use App\Http\Controllers\Studio\WorkerDownloadController;
 use App\Http\Controllers\Studio\WorkerManagementController;
+use App\Http\Controllers\Studio\TemplateController;
+use App\Http\Controllers\Studio\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -59,6 +61,23 @@ Route::middleware('auth')->group(function () {
         '/studio/jobs/{job}/status',
         [AIJobController::class, 'status']
     )->name('jobs.status');
+
+
+    Route::get('/studio/templates', [TemplateController::class, 'index'])
+        ->name('studio.templates');
+
+    Route::post('/studio/templates/{template}', [TemplateController::class, 'create'])
+        ->name('studio.templates.create');
+
+    Route::post(
+        '/studio/projects/{project}/autosave',
+        [WorkspaceController::class, 'autosave']
+    )->name('projects.autosave');
+
+    Route::post(
+        '/studio/projects/{project}/duplicate',
+        [WorkspaceController::class, 'duplicate']
+    )->name('projects.duplicate');
 
     Route::get('/admin', [AdminController::class, 'index'])
         ->name('admin.dashboard');

@@ -43,7 +43,7 @@ button{padding:13px 18px;border:0;border-radius:12px;background:linear-gradient(
 <a href="#">Audio & Voice</a>
 <a href="#">AI Tools</a>
 <a href="{{ route('projects.index') }}">My Projects</a>
-<a href="#">Templates</a>
+<a href="{{ route('studio.templates') }}">Templates</a>
 <a href="#">Exports</a>
 
 @if($user->isAdmin())
@@ -118,17 +118,42 @@ Subscription Required
 <h2>AI Creative Tools</h2>
 
 <div class="tools">
-<div class="tool"><b>Text to Video</b><p>Turn prompts and scripts into complete structured video projects.</p><span class="link">Create →</span></div>
-<div class="tool"><b>Image to Video</b><p>Animate images and create cinematic or promotional visual sequences.</p><span class="link">Animate →</span></div>
-<div class="tool"><b>Business Ad Studio</b><p>Create branded advertisements for businesses and institutions.</p><span class="link">Build Ad →</span></div>
-<div class="tool"><b>Smart Reels</b><p>Vertical short-form videos with smart captions and sequencing.</p><span class="link">Create Reel →</span></div>
+<div class="tool"><b>Text to Video</b><p>Turn prompts and scripts into complete structured video projects.</p><button onclick="launchTool('text-to-video','16:9')">Create →</button></div>
+<div class="tool"><b>Image to Video</b><p>Animate images and create cinematic or promotional visual sequences.</p><button onclick="launchTool('image-to-video','16:9')">Animate →</button></div>
+<div class="tool"><b>Business Ad Studio</b><p>Create branded advertisements for businesses and institutions.</p><button onclick="launchTool('business-ad','16:9')">Build Ad →</button></div>
+<div class="tool"><b>Smart Reels</b><p>Vertical short-form videos with smart captions and sequencing.</p><button onclick="launchTool('reel','9:16')">Create Reel →</button></div>
 <div class="tool"><b>AI Voice Studio</b><p>Voiceover, narration and multilingual audio workflows.</p><span class="link">Open Voice →</span></div>
 <div class="tool"><b>Image AI</b><p>Thumbnails, backgrounds, enhancement and creative composition.</p><span class="link">Open Image AI →</span></div>
 <div class="tool"><b>Auto Captions</b><p>Subtitle generation and synchronized caption workflows.</p><span class="link">Generate →</span></div>
-<div class="tool"><b>Pro Timeline Editor</b><p>Tracks, layers, titles, transitions, audio and effects.</p><span class="link">Open Editor →</span></div>
+<div class="tool"><b>Pro Timeline Editor</b><p>Tracks, layers, titles, transitions, audio and effects.</p><button onclick="launchTool('video','16:9')">Open Editor →</button></div>
 </div>
 
 </main>
 </div>
+
+<form id="tool-launcher" method="POST" action="{{ route('projects.store') }}" style="display:none">
+@csrf
+<input id="tool-name" name="name">
+<input id="tool-type" name="type">
+<input id="tool-ratio" name="aspect_ratio">
+</form>
+
+<script>
+function launchTool(type, ratio) {
+    const titles = {
+        'text-to-video':'Text to Video Project',
+        'image-to-video':'Image to Video Project',
+        'business-ad':'Business Advertisement',
+        'reel':'Smart Reel',
+        'video':'Professional Video Project'
+    };
+
+    document.getElementById('tool-name').value = titles[type] || 'AI Project';
+    document.getElementById('tool-type').value = type;
+    document.getElementById('tool-ratio').value = ratio;
+    document.getElementById('tool-launcher').submit();
+}
+</script>
+
 </body>
 </html>
