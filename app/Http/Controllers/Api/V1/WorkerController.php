@@ -63,7 +63,9 @@ class WorkerController extends Controller
             'disk_free_mb' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $worker = AIWorker::where('worker_uuid', $data['worker_uuid'])->firstOrFail();
+        $worker = $request->attributes->get('authenticated_worker');
+
+        abort_unless($worker instanceof AIWorker, 401);
 
         $worker->update([
             'status' => 'online',
@@ -85,7 +87,9 @@ class WorkerController extends Controller
             'worker_uuid' => ['required', 'string'],
         ]);
 
-        $worker = AIWorker::where('worker_uuid', $data['worker_uuid'])->firstOrFail();
+        $worker = $request->attributes->get('authenticated_worker');
+
+        abort_unless($worker instanceof AIWorker, 401);
 
         $worker->update([
             'status' => 'online',
@@ -167,7 +171,9 @@ class WorkerController extends Controller
             'message' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $worker = AIWorker::where('worker_uuid', $data['worker_uuid'])->firstOrFail();
+        $worker = $request->attributes->get('authenticated_worker');
+
+        abort_unless($worker instanceof AIWorker, 401);
 
         abort_unless((int) $job->worker_id === (int) $worker->id, 409);
 
@@ -196,7 +202,9 @@ class WorkerController extends Controller
             'output_path' => ['nullable', 'string'],
         ]);
 
-        $worker = AIWorker::where('worker_uuid', $data['worker_uuid'])->firstOrFail();
+        $worker = $request->attributes->get('authenticated_worker');
+
+        abort_unless($worker instanceof AIWorker, 401);
 
         abort_unless((int) $job->worker_id === (int) $worker->id, 409);
 
@@ -236,7 +244,9 @@ class WorkerController extends Controller
             'error' => ['required', 'string', 'max:5000'],
         ]);
 
-        $worker = AIWorker::where('worker_uuid', $data['worker_uuid'])->firstOrFail();
+        $worker = $request->attributes->get('authenticated_worker');
+
+        abort_unless($worker instanceof AIWorker, 401);
 
         abort_unless((int) $job->worker_id === (int) $worker->id, 409);
 

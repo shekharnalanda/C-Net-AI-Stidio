@@ -2,25 +2,39 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AIWorker;
+use App\Services\Workers\WorkerCredentialService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class WorkerTokenMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-        $expected = (string) config('studio.worker_token');
+    public function handle(
+        Request $request,
+        Closure $next,
+        WorkerCredentialService $credentials
+    ): Response {
+        $uuid = (string) $request->input('worker_uuid');
+        $token = (string) $request->bearerToken();
 
-        if ($expected === '') {
-            abort(503, 'AI worker token is not configured.');
+        if ($uuid === '' || $token === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Worker authentication required.',
+            ], 401);
         }
 
-        $provided = (string) $request->bearerToken();
+        $worker = AIWorker::where('worker_uuid', $uuid)->first();
 
-        if ($provided === '' || ! hash_equals($expected, $provided)) {
-            abort(401, 'Invalid worker token.');
+        if (! $worker || ! $credentials->verify($worker, $token)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Invalid or disabled worker credential.',
+            ], 401);
         }
+
+        $request->attributes->set('authenticated_worker', $worker);
 
         return $next($request);
     }

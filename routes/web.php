@@ -7,6 +7,7 @@ use App\Http\Controllers\Studio\DashboardController;
 use App\Http\Controllers\Studio\MediaController;
 use App\Http\Controllers\Studio\ProjectController;
 use App\Http\Controllers\Studio\WorkerDownloadController;
+use App\Http\Controllers\Studio\WorkerManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -66,4 +67,20 @@ Route::middleware('auth')->group(function () {
         '/admin/worker/download',
         [WorkerDownloadController::class, 'download']
     )->name('admin.worker.download');
+
+    Route::get('/admin/workers', [WorkerManagementController::class, 'index'])
+        ->name('admin.workers');
+
+    Route::post('/admin/workers/activation', [WorkerManagementController::class, 'createActivation'])
+        ->name('admin.workers.activation');
+
+    Route::post('/admin/workers/{worker}/toggle', [WorkerManagementController::class, 'toggle'])
+        ->name('admin.workers.toggle');
+
+    Route::post('/admin/workers/{worker}/rotate', [WorkerManagementController::class, 'rotate'])
+        ->name('admin.workers.rotate');
+
+    Route::delete('/admin/workers/{worker}', [WorkerManagementController::class, 'destroy'])
+        ->name('admin.workers.destroy');
+
 });

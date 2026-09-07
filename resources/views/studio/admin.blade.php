@@ -29,7 +29,11 @@ th{color:#8091ae}
 <div class="brand">C-Net <span>AI Studio</span></div>
 <div class="muted">Master Administration Center</div>
 </div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<a href="{{ route('admin.workers') }}">AI Worker Management</a>
+<a href="{{ route('admin.worker.download') }}">Download Windows Worker</a>
 <a href="{{ route('studio.dashboard') }}">← Studio Dashboard</a>
+</div>
 </div>
 
 <div class="cards">
