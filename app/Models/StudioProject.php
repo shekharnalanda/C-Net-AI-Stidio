@@ -32,4 +32,9 @@ class StudioProject extends Model
     {
         return $this->hasMany(AIJob::class, 'project_id');
     }
+    public function outputs()
+    {
+        return $this->hasMany(StudioOutput::class, 'project_id');
+    }
+
 }

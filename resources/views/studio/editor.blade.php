@@ -49,6 +49,7 @@ label{font-size:11px;color:#8392aa}
 <span id="saveState" class="save-state">Ready</span>
 <a class="btn" href="{{ route('studio.templates') }}">Templates</a>
 <a class="btn" href="{{ route('projects.index') }}">Projects</a>
+<a class="btn" href="{{ route('projects.outputs',$project) }}">Project Outputs</a>
 <form method="POST" action="{{ route('projects.duplicate',$project) }}">
 @csrf
 <button type="submit">Duplicate</button>
@@ -232,6 +233,22 @@ label{font-size:11px;color:#8392aa}
 <div>{{ strtoupper(str_replace('-',' ',$job->job_type)) }}</div>
 <div class="status job-status">{{ strtoupper($job->status) }} • <span>{{ $job->progress }}</span>%</div>
 <div class="progress"><span style="width:{{ $job->progress }}%"></span></div>
+
+@if(in_array($job->status,['failed','cancelled']))
+<form method="POST" action="{{ route('jobs.retry',$job) }}" style="margin-top:7px">
+@csrf
+<button type="submit" style="width:100%">Retry Job</button>
+</form>
+@endif
+
+@if($job->status === 'completed')
+<button
+    type="button"
+    style="width:100%;margin-top:7px"
+    onclick="syncOutput({{ $job->id }}, @json(route('jobs.sync-output',$job)))"
+>Sync Output</button>
+@endif
+
 </div>
 @empty
 <div style="color:#71819c;font-size:12px">No AI jobs yet.</div>
@@ -364,6 +381,29 @@ async function pollJobs() {
 }
 
 setInterval(pollJobs, 5000);
+
+async function syncOutput(jobId, url) {
+    try {
+        const res = await fetch(url, {
+            method:'POST',
+            headers:{
+                'Accept':'application/json',
+                'X-CSRF-TOKEN':csrf
+            }
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+            saveState.textContent = 'Output ready';
+        } else {
+            saveState.textContent = 'No output file';
+        }
+    } catch(e) {
+        saveState.textContent = 'Output sync failed';
+    }
+}
+
 </script>
 </body>
 </html>

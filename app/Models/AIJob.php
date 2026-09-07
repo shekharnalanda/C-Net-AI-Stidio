@@ -27,4 +27,9 @@ class AIJob extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function outputs()
+    {
+        return $this->hasMany(StudioOutput::class, 'ai_job_id');
+    }
+
 }

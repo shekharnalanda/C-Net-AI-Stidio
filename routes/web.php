@@ -10,6 +10,7 @@ use App\Http\Controllers\Studio\WorkerDownloadController;
 use App\Http\Controllers\Studio\WorkerManagementController;
 use App\Http\Controllers\Studio\TemplateController;
 use App\Http\Controllers\Studio\WorkspaceController;
+use App\Http\Controllers\Studio\OutputController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -78,6 +79,30 @@ Route::middleware('auth')->group(function () {
         '/studio/projects/{project}/duplicate',
         [WorkspaceController::class, 'duplicate']
     )->name('projects.duplicate');
+
+
+    Route::get('/studio/outputs', [OutputController::class, 'index'])
+        ->name('studio.outputs');
+
+    Route::get(
+        '/studio/projects/{project}/outputs',
+        [OutputController::class, 'project']
+    )->name('projects.outputs');
+
+    Route::get(
+        '/studio/outputs/{output}/download',
+        [OutputController::class, 'download']
+    )->name('outputs.download');
+
+    Route::post(
+        '/studio/jobs/{job}/retry',
+        [OutputController::class, 'retry']
+    )->name('jobs.retry');
+
+    Route::post(
+        '/studio/jobs/{job}/sync-output',
+        [OutputController::class, 'sync']
+    )->name('jobs.sync-output');
 
     Route::get('/admin', [AdminController::class, 'index'])
         ->name('admin.dashboard');

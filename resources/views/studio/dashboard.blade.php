@@ -44,7 +44,7 @@ button{padding:13px 18px;border:0;border-radius:12px;background:linear-gradient(
 <a href="#">AI Tools</a>
 <a href="{{ route('projects.index') }}">My Projects</a>
 <a href="{{ route('studio.templates') }}">Templates</a>
-<a href="#">Exports</a>
+<a href="{{ route('studio.outputs') }}">Exports</a>
 
 @if($user->isAdmin())
 <a href="{{ route('admin.dashboard') }}">Master Admin</a>
