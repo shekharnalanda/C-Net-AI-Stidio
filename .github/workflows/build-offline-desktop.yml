@@ -16,12 +16,21 @@ jobs:
         with: {node-version: '22', cache: npm, cache-dependency-path: desktop/package-lock.json}
       - run: npm install --package-lock-only
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm test
         env:
           CNET_RUNTIME_INTEGRATION: '1'
       - run: npm run dist:win
+      - name: Create installer SHA-256 manifest
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem dist/*.exe | Select-Object -First 1
+          $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLower()
+          "$hash *$($installer.Name)" | Set-Content "$($installer.FullName).sha256" -Encoding ascii
       - uses: actions/upload-artifact@v4
         with:
           name: C-Net-AI-Studio-Offline-Windows
-          path: desktop/dist/*.exe
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.sha256
           if-no-files-found: error

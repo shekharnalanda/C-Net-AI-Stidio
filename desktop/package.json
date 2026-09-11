@@ -1,6 +1,6 @@
 {
   "name": "cnet-ai-studio-desktop",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Universal offline AI workspace with adaptive engine selection",
   "author": "C-Net AI Studio",
   "private": true,
@@ -40,6 +40,6 @@
     }
   },
   "dependencies": {
-    "extract-zip": "^2.0.1"
+    "yauzl": "^3.4.0"
   }
 }

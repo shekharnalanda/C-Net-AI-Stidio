@@ -8,6 +8,8 @@ let runtimeRoot;
 let projectStore;
 let licenseManager;
 let settingsStore;
+let supportLogger;
+let mainWindow;
 const registry = () => JSON.parse(fs.readFileSync(path.join(__dirname, '../registry/engines.json'), 'utf8'));
 const engineById = id => {
   const engine = registry().engines.find(item => item.id === id);
@@ -16,8 +18,12 @@ const engineById = id => {
 };
 
 function createWindow() {
-  const window = new BrowserWindow({width: 1180, height: 760, minWidth: 920, minHeight: 620, webPreferences: {preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true}});
-  window.loadFile(path.join(__dirname, 'renderer/index.html'));
+  mainWindow = new BrowserWindow({width: 1180, height: 760, minWidth: 920, minHeight: 620, show:false, webPreferences: {preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity:true}});
+  mainWindow.webContents.setWindowOpenHandler(()=>({action:'deny'}));
+  mainWindow.webContents.on('will-navigate',(event,url)=>{if(url!==mainWindow.webContents.getURL())event.preventDefault()});
+  mainWindow.webContents.on('render-process-gone',(_event,details)=>supportLogger?.log('error','renderer-process-gone',{reason:details.reason,exitCode:details.exitCode}));
+  mainWindow.once('ready-to-show',()=>mainWindow.show());
+  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 }
 
 ipcMain.handle('studio:scan-hardware', () => scanHardware());
@@ -55,10 +61,13 @@ ipcMain.handle('studio:engine-status', async (_event, id) => {
 ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
   const {generateWithEngine} = await import('./core/engine-adapters.js');
   const engine=engineById(engineId);
+  const {validateGenerationInput}=await import('./core/input-validator.js');input=validateGenerationInput(engine,input);
   if(['whisper-cpp','llama-cli','stable-diffusion-cpp','ffmpeg-video'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  supportLogger.log('info','generation-started',{task:input.task,engine:engine.id});
   const result=await generateWithEngine(engine,input);
   if(input.projectId)projectStore.addOutput(input.projectId,{task:input.task,engine:engine.id,content:result.content});
   licenseManager.record(input.task);
+  supportLogger.log('info','generation-completed',{task:input.task,engine:engine.id,type:result.type});
   return result;
 });
 ipcMain.handle('studio:projects',()=>projectStore.list());
@@ -75,13 +84,19 @@ ipcMain.handle('studio:settings-get',()=>settingsStore.get());
 ipcMain.handle('studio:settings-save',(_event,value)=>settingsStore.save(value));
 ipcMain.handle('studio:backup-export',async()=>{const result=await dialog.showSaveDialog({title:'Export workspace backup',defaultPath:`C-Net-AI-Studio-Backup-${new Date().toISOString().slice(0,10)}.cnetbackup`,filters:[{name:'C-Net backup',extensions:['cnetbackup']}]});if(result.canceled)return null;const {writeBackup}=await import('./core/settings-backup.js');return writeBackup(result.filePath,{settings:settingsStore.get(),projects:{projects:projectStore.list()}})});
 ipcMain.handle('studio:backup-import',async()=>{const result=await dialog.showOpenDialog({title:'Restore workspace backup',properties:['openFile'],filters:[{name:'C-Net backup',extensions:['cnetbackup']}]});if(result.canceled)return null;const {readBackup}=await import('./core/settings-backup.js');const backup=readBackup(result.filePaths[0]);projectStore.write(backup.projects);settingsStore.save(backup.settings);return {projects:projectStore.list(),settings:settingsStore.get()}});
-app.whenReady().then(async () => {
+ipcMain.handle('studio:diagnostics-export',async()=>{const result=await dialog.showSaveDialog({title:'Save support diagnostics',defaultPath:`C-Net-AI-Studio-Diagnostics-${new Date().toISOString().slice(0,10)}.json`,filters:[{name:'JSON report',extensions:['json']}]});if(result.canceled)return null;const {buildDiagnostics,writeDiagnostics}=await import('./core/diagnostics.js');const report=buildDiagnostics({version:app.getVersion(),hardware:await scanHardware(),registry:registry(),runtimeRoot,license:licenseManager.status(),logs:supportLogger.recent()});return writeDiagnostics(result.filePath,report)});
+const singleInstance=app.requestSingleInstanceLock();
+if(!singleInstance)app.quit();
+app.on('second-instance',()=>{if(mainWindow){if(mainWindow.isMinimized())mainWindow.restore();mainWindow.focus()}});
+if(singleInstance)app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));
   runtimeRoot = path.join(app.getPath('userData'),'runtimes');
   const {ProjectStore}=await import('./core/project-store.js');projectStore=new ProjectStore(path.join(app.getPath('userData'),'workspace'));
   const {LicenseManager}=await import('./core/license-manager.js');const keyFile=path.join(__dirname,'../registry/license-public-key.pem');const publicKey=process.env.CNET_LICENSE_PUBLIC_KEY||(fs.existsSync(keyFile)?fs.readFileSync(keyFile,'utf8'):'');licenseManager=new LicenseManager(path.join(app.getPath('userData'),'commercial'),publicKey);
   const {SettingsStore}=await import('./core/settings-backup.js');settingsStore=new SettingsStore(path.join(app.getPath('userData'),'workspace'));
+  const {SupportLogger}=await import('./core/support-logger.js');supportLogger=new SupportLogger(path.join(app.getPath('userData'),'logs'));supportLogger.log('info','application-started',{version:app.getVersion(),platform:process.platform});
   createWindow();
 });
+process.on('uncaughtException',error=>{supportLogger?.log('error','uncaught-exception',{message:error.message,stack:error.stack});app.exit(1)});
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

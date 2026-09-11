@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('studio', {
   saveSettings: value => ipcRenderer.invoke('studio:settings-save',value),
   exportBackup: () => ipcRenderer.invoke('studio:backup-export'),
   importBackup: () => ipcRenderer.invoke('studio:backup-import'),
+  exportDiagnostics: () => ipcRenderer.invoke('studio:diagnostics-export'),
   listProjects: () => ipcRenderer.invoke('studio:projects'),
   createProject: name => ipcRenderer.invoke('studio:project-create',name)
 });

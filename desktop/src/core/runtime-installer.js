@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import extract from 'extract-zip';
 import {downloadResumable} from './download-manager.js';
+import {secureExtract} from './secure-zip.js';
 
 const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const findFile = (directory, name) => {
@@ -28,7 +28,7 @@ export async function installRuntime(engine, rootDirectory) {
       await downloadResumable({url:engine.packages.model.url,destination:modelFile});
       if (hash(modelFile) !== engine.packages.model.sha256) throw new Error('Model verification failed.');
     }
-    const bin = path.join(staging, 'bin'); await extract(runtimeArchive, {dir:bin});
+    const bin = path.join(staging, 'bin'); await secureExtract(runtimeArchive,bin);
     const executable = findFile(bin, engine.executableName);
     if (!executable) throw new Error('Runtime executable was not found after extraction.');
     let mediaExecutable = null;
@@ -36,7 +36,7 @@ export async function installRuntime(engine, rootDirectory) {
       const mediaArchive=path.join(staging,'media.zip');
       await downloadResumable({url:engine.packages.media.url,destination:mediaArchive});
       if(hash(mediaArchive)!==engine.packages.media.sha256)throw new Error('Media runtime verification failed.');
-      const mediaDirectory=path.join(staging,'media');await extract(mediaArchive,{dir:mediaDirectory});fs.rmSync(mediaArchive,{force:true});
+      const mediaDirectory=path.join(staging,'media');await secureExtract(mediaArchive,mediaDirectory);fs.rmSync(mediaArchive,{force:true});
       mediaExecutable=findFile(mediaDirectory,engine.mediaExecutableName);
       if(!mediaExecutable)throw new Error('Media runtime executable was not found.');
     }
