@@ -25,8 +25,21 @@ export async function detectAdapter(engine) {
   }
   if (engine.adapter === 'windows-sapi') return process.platform === 'win32' ? {ready:true, runtimeReady:true} : {ready:false, reason:'Windows offline voice is available only on Windows.'};
   if (engine.adapter === 'whisper-cpp') return engine.executable && engine.modelFile && fs.existsSync(engine.executable) && fs.existsSync(engine.modelFile) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Whisper runtime and model are not installed.'};
+  if (engine.adapter === 'stable-diffusion-cpp') return engine.executable && engine.modelFile && fs.existsSync(engine.executable) && fs.existsSync(engine.modelFile) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Verified image runtime and model are not installed.'};
   if (engine.executable) return fs.existsSync(engine.executable) ? {ready:true} : {ready:false, reason:'Engine executable was not found.'};
   return {ready:false, reason:'Engine runtime is not installed.'};
+}
+
+export function stableDiffusionArgs(engine, input, outputFile) {
+  const number = (value, fallback, min, max) => Math.min(max, Math.max(min, Number(value) || fallback));
+  const width = Math.round(number(input.width, 512, 256, 1024) / 64) * 64;
+  const height = Math.round(number(input.height, 512, 256, 1024) / 64) * 64;
+  const steps = Math.round(number(input.steps, 20, 1, 50));
+  const cfg = number(input.cfgScale, 7, 1, 20);
+  const seed = Math.round(number(input.seed, -1, -1, 2147483647));
+  const args = ['-m', engine.modelFile, '-p', String(input.prompt), '-o', outputFile, '-W', String(width), '-H', String(height), '--steps', String(steps), '--cfg-scale', String(cfg), '-s', String(seed)];
+  if (input.negativePrompt) args.push('-n', String(input.negativePrompt));
+  return args;
 }
 
 export async function generateWithEngine(engine, input) {
@@ -63,6 +76,16 @@ export async function generateWithEngine(engine, input) {
     const subtitle = `${prefix}.srt`;
     if (!fs.existsSync(subtitle)) throw new Error('Subtitle file was not created.');
     return {type:'subtitle',content:subtitle,subtitleText:fs.readFileSync(subtitle,'utf8'),engine:engine.id};
+  }
+  if (engine.adapter === 'stable-diffusion-cpp') {
+    if (!engine.executable || !engine.modelFile) throw new Error('Verified image engine is not installed.');
+    const outputDirectory = path.join(os.homedir(), 'Documents', 'C-Net AI Studio', 'Outputs');
+    fs.mkdirSync(outputDirectory,{recursive:true});
+    const outputFile = path.join(outputDirectory, `image-${Date.now()}.png`);
+    const {spawn}=await import('node:child_process');
+    await new Promise((resolve,reject)=>{const child=spawn(engine.executable,stableDiffusionArgs(engine,input,outputFile),{shell:false,windowsHide:true});let stderr='';child.stderr.on('data',d=>stderr+=d);child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error(stderr||`Image engine exited with code ${code}.`)))});
+    if (!fs.existsSync(outputFile) || fs.statSync(outputFile).size < 8) throw new Error('Image engine did not create a valid output.');
+    return {type:'image',content:outputFile,engine:engine.id};
   }
   if (engine.adapter === 'command-json') return runAdapter({executable:engine.executable,args:engine.args || [],input});
   throw new Error('This engine adapter is not configured.');

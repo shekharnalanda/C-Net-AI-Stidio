@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog, nativeImage} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const {scanHardware} = require('./hardware.cjs');
@@ -44,13 +44,13 @@ ipcMain.handle('studio:select-media', async () => {
 ipcMain.handle('studio:engine-status', async (_event, id) => {
   const {detectAdapter} = await import('./core/engine-adapters.js');
   const engine=engineById(id);
-  if(['whisper-cpp','llama-cli'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  if(['whisper-cpp','llama-cli','stable-diffusion-cpp'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   return detectAdapter(engine);
 });
 ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
   const {generateWithEngine} = await import('./core/engine-adapters.js');
   const engine=engineById(engineId);
-  if(['whisper-cpp','llama-cli'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  if(['whisper-cpp','llama-cli','stable-diffusion-cpp'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   const result=await generateWithEngine(engine,input);
   if(input.projectId)projectStore.addOutput(input.projectId,{task:input.task,engine:engine.id,content:result.content});
   return result;
@@ -58,6 +58,9 @@ ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
 ipcMain.handle('studio:projects',()=>projectStore.list());
 ipcMain.handle('studio:project-create',(_event,name)=>projectStore.create(name));
 ipcMain.handle('studio:subtitle-save',(_event,{file,text})=>{const outputRoot=path.resolve(require('node:os').homedir(),'Documents','C-Net AI Studio','Outputs');const target=path.resolve(file);if(!target.startsWith(`${outputRoot}${path.sep}`))throw new Error('Invalid subtitle output path.');fs.writeFileSync(target,text,'utf8');return target;});
+const safeOutput = file => {const root=path.resolve(require('node:os').homedir(),'Documents','C-Net AI Studio','Outputs');const target=path.resolve(file);if(!target.startsWith(`${root}${path.sep}`))throw new Error('Invalid output path.');return target;};
+ipcMain.handle('studio:image-data',(_event,file)=>{const target=safeOutput(file);if(!/\.(png|jpe?g)$/i.test(target))throw new Error('Invalid image type.');return `data:image/${path.extname(target).toLowerCase()==='.png'?'png':'jpeg'};base64,${fs.readFileSync(target).toString('base64')}`;});
+ipcMain.handle('studio:image-export',async(_event,file)=>{const source=safeOutput(file);const result=await dialog.showSaveDialog({title:'Export image',defaultPath:path.basename(source),filters:[{name:'PNG image',extensions:['png']},{name:'JPEG image',extensions:['jpg','jpeg']}]});if(result.canceled)return null;if(/\.jpe?g$/i.test(result.filePath)){const jpeg=nativeImage.createFromPath(source).toJPEG(90);if(!jpeg.length)throw new Error('Image conversion failed.');fs.writeFileSync(result.filePath,jpeg)}else fs.copyFileSync(source,result.filePath);return result.filePath;});
 app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));
