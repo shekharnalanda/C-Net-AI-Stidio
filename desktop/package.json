@@ -1,6 +1,6 @@
 {
   "name": "cnet-ai-studio-desktop",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Universal offline AI workspace with adaptive engine selection",
   "author": "C-Net AI Studio",
   "private": true,
@@ -18,9 +18,28 @@
   "build": {
     "appId": "in.mciedu.cnet.aistudio",
     "productName": "C-Net AI Studio",
-    "directories": { "output": "dist" },
-    "files": ["src/**/*", "registry/**/*", "package.json"],
-    "win": { "target": ["nsis"], "artifactName": "C-Net-AI-Studio-Offline-Setup-${version}.${ext}" },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true }
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "registry/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "C-Net-AI-Studio-Offline-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {
+    "extract-zip": "^2.0.1"
   }
 }

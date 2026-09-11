@@ -8,5 +8,7 @@ contextBridge.exposeInMainWorld('studio', {
   activateModel: (task, id) => ipcRenderer.invoke('studio:model-activate', {task, id}),
   removeModel: id => ipcRenderer.invoke('studio:model-remove', id),
   engineStatus: id => ipcRenderer.invoke('studio:engine-status', id),
-  generate: (engineId, input) => ipcRenderer.invoke('studio:generate', {engineId, input})
+  generate: (engineId, input) => ipcRenderer.invoke('studio:generate', {engineId, input}),
+  installRuntime: id => ipcRenderer.invoke('studio:runtime-install',id),
+  selectMedia: () => ipcRenderer.invoke('studio:select-media')
 });

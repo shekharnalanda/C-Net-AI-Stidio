@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const {scanHardware} = require('./hardware.cjs');
 
 let manager;
+let runtimeRoot;
 const registry = () => JSON.parse(fs.readFileSync(path.join(__dirname, '../registry/engines.json'), 'utf8'));
 const engineById = id => {
   const engine = registry().engines.find(item => item.id === id);
@@ -31,17 +32,30 @@ ipcMain.handle('studio:model-download', (_event, id) => {
 });
 ipcMain.handle('studio:model-activate', (_event, {task, id}) => manager.activate(task, id));
 ipcMain.handle('studio:model-remove', (_event, id) => manager.remove(id));
+ipcMain.handle('studio:runtime-install', async (_event,id) => {
+  const {installRuntime} = await import('./core/runtime-installer.js');
+  return installRuntime(engineById(id),runtimeRoot);
+});
+ipcMain.handle('studio:select-media', async () => {
+  const result=await dialog.showOpenDialog({title:'Select WAV audio',properties:['openFile'],filters:[{name:'WAV Audio',extensions:['wav']}]});
+  return result.canceled?null:result.filePaths[0];
+});
 ipcMain.handle('studio:engine-status', async (_event, id) => {
   const {detectAdapter} = await import('./core/engine-adapters.js');
-  return detectAdapter(engineById(id));
+  const engine=engineById(id);
+  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;}}
+  return detectAdapter(engine);
 });
 ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
   const {generateWithEngine} = await import('./core/engine-adapters.js');
-  return generateWithEngine(engineById(engineId), input);
+  const engine=engineById(engineId);
+  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;}}
+  return generateWithEngine(engine,input);
 });
 app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));
+  runtimeRoot = path.join(app.getPath('userData'),'runtimes');
   createWindow();
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

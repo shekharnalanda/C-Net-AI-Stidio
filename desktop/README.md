@@ -8,4 +8,6 @@ Model downloads remain disabled until a model publisher URL and SHA-256 checksum
 
 Windows Offline Voice uses the operating system's local SAPI voices and writes WAV output to `Documents/C-Net AI Studio/Outputs`. It requires no model download and no internet connection.
 
+Whisper Multilingual Lite downloads a pinned Windows x64 runtime and multilingual model, verifies both SHA-256 digests, extracts them atomically, and creates `.srt` subtitles from selected WAV audio. Once installed, transcription is fully offline.
+
 Run `npm test` for recommendation tests, `npm start` for development, and `npm run dist:win` on Windows to produce the NSIS installer.

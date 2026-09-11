@@ -23,6 +23,7 @@ export async function detectAdapter(engine) {
     catch (error) { return {ready: false, reason: 'Local text runtime is not running.'}; }
   }
   if (engine.adapter === 'windows-sapi') return process.platform === 'win32' ? {ready:true, runtimeReady:true} : {ready:false, reason:'Windows offline voice is available only on Windows.'};
+  if (engine.adapter === 'whisper-cpp') return engine.executable && engine.modelFile && fs.existsSync(engine.executable) && fs.existsSync(engine.modelFile) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Whisper runtime and model are not installed.'};
   if (engine.executable) return fs.existsSync(engine.executable) ? {ready:true} : {ready:false, reason:'Engine executable was not found.'};
   return {ready:false, reason:'Engine runtime is not installed.'};
 }
@@ -39,6 +40,17 @@ export async function generateWithEngine(engine, input) {
     const outputFile = path.join(outputDirectory, `voice-${Date.now()}.wav`);
     const script = "$ErrorActionPreference='Stop';Add-Type -AssemblyName System.Speech;$i=[Console]::In.ReadToEnd()|ConvertFrom-Json;$s=New-Object System.Speech.Synthesis.SpeechSynthesizer;$s.SetOutputToWaveFile($i.output);$s.Speak($i.text);$s.Dispose();[pscustomobject]@{type='audio';content=$i.output;engine='windows-sapi'}|ConvertTo-Json -Compress";
     return runAdapter({executable:'powershell.exe',args:['-NoProfile','-NonInteractive','-Command',script],input:{text:input.prompt,output:outputFile}});
+  }
+  if (engine.adapter === 'whisper-cpp') {
+    if (!input.mediaFile) throw new Error('Select a WAV audio file first.');
+    const outputDirectory = path.join(os.homedir(), 'Documents', 'C-Net AI Studio', 'Outputs');
+    fs.mkdirSync(outputDirectory,{recursive:true});
+    const prefix = path.join(outputDirectory, `captions-${Date.now()}`);
+    const {spawn} = await import('node:child_process');
+    await new Promise((resolve,reject)=>{const child=spawn(engine.executable,['-m',engine.modelFile,'-f',input.mediaFile,'-osrt','-of',prefix],{shell:false,windowsHide:true});let stderr='';child.stderr.on('data',d=>stderr+=d);child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error(stderr||`Whisper exited with code ${code}.`)))});
+    const subtitle = `${prefix}.srt`;
+    if (!fs.existsSync(subtitle)) throw new Error('Subtitle file was not created.');
+    return {type:'subtitle',content:subtitle,engine:engine.id};
   }
   if (engine.adapter === 'command-json') return runAdapter({executable:engine.executable,args:engine.args || [],input});
   throw new Error('This engine adapter is not configured.');

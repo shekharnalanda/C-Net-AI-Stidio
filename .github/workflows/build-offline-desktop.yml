@@ -17,6 +17,8 @@ jobs:
       - run: npm install --package-lock-only
       - run: npm ci
       - run: npm test
+        env:
+          CNET_RUNTIME_INTEGRATION: '1'
       - run: npm run dist:win
       - uses: actions/upload-artifact@v4
         with:
