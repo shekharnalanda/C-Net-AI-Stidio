@@ -4,6 +4,12 @@ const fs = require('node:fs');
 const {scanHardware} = require('./hardware.cjs');
 
 let manager;
+const registry = () => JSON.parse(fs.readFileSync(path.join(__dirname, '../registry/engines.json'), 'utf8'));
+const engineById = id => {
+  const engine = registry().engines.find(item => item.id === id);
+  if (!engine) throw new Error('Unknown engine.');
+  return engine;
+};
 
 function createWindow() {
   const window = new BrowserWindow({width: 1180, height: 760, minWidth: 920, minHeight: 620, webPreferences: {preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true}});
@@ -11,16 +17,28 @@ function createWindow() {
 }
 
 ipcMain.handle('studio:scan-hardware', () => scanHardware());
-ipcMain.handle('studio:registry', () => JSON.parse(fs.readFileSync(path.join(__dirname, '../registry/engines.json'), 'utf8')));
+ipcMain.handle('studio:registry', () => registry());
 ipcMain.handle('studio:models', () => manager.list());
-ipcMain.handle('studio:model-import', async (_event, model) => {
+ipcMain.handle('studio:model-import', async (_event, id) => {
+  const model = engineById(id);
   const result = await dialog.showOpenDialog({title: `Import ${model.name}`, properties: ['openFile'], filters: [{name: 'C-Net AI Model Package', extensions: ['cnetmodel', 'bin', 'gguf', 'zip']}]});
   if (result.canceled) return null;
   return manager.importPackage({...model, sourceFile: result.filePaths[0]});
 });
-ipcMain.handle('studio:model-download', (_event, model) => manager.downloadPackage(model));
+ipcMain.handle('studio:model-download', (_event, id) => {
+  const model = engineById(id);
+  return manager.downloadPackage({id:model.id,name:model.name,url:model.downloadUrl,sha256:model.sha256});
+});
 ipcMain.handle('studio:model-activate', (_event, {task, id}) => manager.activate(task, id));
 ipcMain.handle('studio:model-remove', (_event, id) => manager.remove(id));
+ipcMain.handle('studio:engine-status', async (_event, id) => {
+  const {detectAdapter} = await import('./core/engine-adapters.js');
+  return detectAdapter(engineById(id));
+});
+ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
+  const {generateWithEngine} = await import('./core/engine-adapters.js');
+  return generateWithEngine(engineById(engineId), input);
+});
 app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));

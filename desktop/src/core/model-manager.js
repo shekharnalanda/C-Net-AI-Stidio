@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import https from 'node:https';
+import {downloadResumable} from './download-manager.js';
 
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,63}$/;
 
@@ -53,14 +53,7 @@ export class ModelManager {
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:') throw new Error('Model downloads require HTTPS.');
     const temporary = path.join(this.rootDirectory, `${id}.download`);
-    await new Promise((resolve, reject) => {
-      const request = https.get(parsed, {timeout: 30000}, response => {
-        if (response.statusCode !== 200) return reject(new Error(`Model download failed (${response.statusCode}).`));
-        const output = fs.createWriteStream(temporary, {mode: 0o600});
-        response.pipe(output); output.on('finish', () => output.close(resolve)); output.on('error', reject);
-      });
-      request.on('timeout', () => request.destroy(new Error('Model download timed out.'))); request.on('error', reject);
-    });
+    await downloadResumable({url: parsed.toString(), destination: temporary});
     try { return this.importPackage({id, sourceFile: temporary, sha256, name}); }
     finally { fs.rmSync(temporary, {force: true}); }
   }

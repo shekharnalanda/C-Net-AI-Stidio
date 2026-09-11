@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "engines": [
-    {"id":"llama-cpu","name":"Local Text Lite","tasks":["text","script","prompt"],"runtime":"local","minRamGb":8,"minVramGb":0,"gpu":"any","quality":2,"speed":2,"diskGb":5,"sha256":null,"downloadUrl":null},
+    {"id":"llama-cpu","name":"Local Text Lite","tasks":["text","script","prompt"],"runtime":"local","adapter":"ollama","model":"qwen2.5:3b","minRamGb":8,"minVramGb":0,"gpu":"any","quality":2,"speed":2,"diskGb":5,"sha256":null,"downloadUrl":null},
     {"id":"whisper-cpu","name":"Local Caption Lite","tasks":["caption","transcription"],"runtime":"local","minRamGb":8,"minVramGb":0,"gpu":"any","quality":3,"speed":2,"diskGb":3,"sha256":null,"downloadUrl":null},
     {"id":"piper-tts","name":"Local Voice Lite","tasks":["voice","tts"],"runtime":"local","minRamGb":4,"minVramGb":0,"gpu":"any","quality":2,"speed":4,"diskGb":2,"sha256":null,"downloadUrl":null},
     {"id":"sdxl-standard","name":"Image Creator Standard","tasks":["image"],"runtime":"local","minRamGb":16,"minVramGb":6,"gpu":"nvidia","quality":4,"speed":3,"diskGb":18,"sha256":null,"downloadUrl":null},
