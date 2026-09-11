@@ -6,4 +6,6 @@ Locked architecture: one universal Windows installer, runtime hardware scanning,
 
 Model downloads remain disabled until a model publisher URL and SHA-256 checksum are entered in `registry/engines.json`; the application never installs an unverified package. The local runner uses structured standard input and never invokes a command shell.
 
+Windows Offline Voice uses the operating system's local SAPI voices and writes WAV output to `Documents/C-Net AI Studio/Outputs`. It requires no model download and no internet connection.
+
 Run `npm test` for recommendation tests, `npm start` for development, and `npm run dist:win` on Windows to produce the NSIS installer.
