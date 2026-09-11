@@ -44,13 +44,40 @@ export function stableDiffusionArgs(engine, input, outputFile) {
   return args;
 }
 
+export function llamaCliArgs(engine, prompt) {
+  return ['-m', engine.modelFile, '-p', prompt, '-n', '256', '--no-display-prompt', '--no-conversation', '--simple-io'];
+}
+
+function runTextProcess(executable, args, timeoutMs = 360000) {
+  return new Promise(async (resolve, reject) => {
+    const {spawn} = await import('node:child_process');
+    const child = spawn(executable, args, {shell:false, windowsHide:true, stdio:['ignore','pipe','pipe']});
+    let output = '', stderr = '', settled = false;
+    const finish = callback => value => { if (settled) return; settled = true; clearTimeout(timer); callback(value); };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      child.kill();
+      finish(reject)(new Error('Text generation timed out. Please use a shorter prompt or a faster model.'));
+    }, timeoutMs);
+    child.stdout.on('data', data => output += data);
+    child.stderr.on('data', data => stderr += data);
+    child.on('error', finish(reject));
+    child.on('close', code => {
+      if (code !== 0) return finish(reject)(new Error(stderr.trim() || `Text engine exited with code ${code}.`));
+      const content = output.trim();
+      if (!content) return finish(reject)(new Error('Text engine completed without producing an answer.'));
+      finish(resolve)(content);
+    });
+  });
+}
+
 export async function generateWithEngine(engine, input) {
   if (engine.adapter === 'llama-cli') {
     if (!engine.executable || !engine.modelFile) throw new Error('Local text engine is not installed.');
     const language=input.language==='hi'?'उत्तर हिन्दी में दीजिए।':input.language==='en'?'Answer in English.':'Reply in the language used by the user.';
-    const {spawn}=await import('node:child_process');
     const prompt=`${language}\n\nUser: ${input.prompt}\nAssistant:`;
-    return new Promise((resolve,reject)=>{const child=spawn(engine.executable,['-m',engine.modelFile,'-p',prompt,'-n','512','--no-display-prompt'],{shell:false,windowsHide:true});let output='',stderr='';child.stdout.on('data',d=>output+=d);child.stderr.on('data',d=>stderr+=d);child.on('error',reject);child.on('close',code=>code===0?resolve({type:'text',content:output.trim(),engine:engine.id}):reject(new Error(stderr||`Text engine exited with code ${code}.`)))});
+    const content = await runTextProcess(engine.executable, llamaCliArgs(engine, prompt));
+    return {type:'text', content, engine:engine.id};
   }
   if (engine.adapter === 'ollama') {
     const result = await ollamaRequest('/api/generate', {model: engine.model, prompt: input.prompt, stream: false});
