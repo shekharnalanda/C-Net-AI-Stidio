@@ -19,6 +19,12 @@ contextBridge.exposeInMainWorld('studio', {
   exportImage: file => ipcRenderer.invoke('studio:image-export',file),
   openVideo: file => ipcRenderer.invoke('studio:video-open',file),
   exportVideo: file => ipcRenderer.invoke('studio:video-export',file),
+  licenseStatus: () => ipcRenderer.invoke('studio:license-status'),
+  importLicense: () => ipcRenderer.invoke('studio:license-import'),
+  getSettings: () => ipcRenderer.invoke('studio:settings-get'),
+  saveSettings: value => ipcRenderer.invoke('studio:settings-save',value),
+  exportBackup: () => ipcRenderer.invoke('studio:backup-export'),
+  importBackup: () => ipcRenderer.invoke('studio:backup-import'),
   listProjects: () => ipcRenderer.invoke('studio:projects'),
   createProject: name => ipcRenderer.invoke('studio:project-create',name)
 });

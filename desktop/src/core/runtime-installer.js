@@ -44,7 +44,7 @@ export async function installRuntime(engine, rootDirectory) {
     const relativeExecutable = path.relative(staging, executable);
     const relativeMediaExecutable = mediaExecutable ? path.relative(staging,mediaExecutable) : null;
     fs.rmSync(target, {recursive:true, force:true}); fs.renameSync(staging, target);
-    const state = {id:engine.id,executable:path.join(target,relativeExecutable),model:engine.packages.model?path.join(target,engine.packages.model.fileName):null,mediaExecutable:relativeMediaExecutable?path.join(target,relativeMediaExecutable):null,installedAt:new Date().toISOString()};
+    const state = {id:engine.id,runtimeVersion:engine.packages.runtime.version,runtimeSha256:engine.packages.runtime.sha256,modelSha256:engine.packages.model?.sha256||null,executable:path.join(target,relativeExecutable),model:engine.packages.model?path.join(target,engine.packages.model.fileName):null,mediaExecutable:relativeMediaExecutable?path.join(target,relativeMediaExecutable):null,installedAt:new Date().toISOString()};
     fs.writeFileSync(path.join(target,'runtime.json'),JSON.stringify(state,null,2),{mode:0o600});
     return state;
   } catch (error) { fs.rmSync(staging,{recursive:true,force:true}); throw error; }
@@ -53,6 +53,6 @@ export async function installRuntime(engine, rootDirectory) {
 export function runtimeState(engine, rootDirectory) {
   const file = path.join(rootDirectory, engine.id, 'runtime.json');
   if (!fs.existsSync(file)) return null;
-  try { const state=JSON.parse(fs.readFileSync(file,'utf8'));const modelReady=!engine.packages?.model||(state.model&&fs.existsSync(state.model));const ready=fs.existsSync(state.executable)&&modelReady&&(!engine.packages?.media||fs.existsSync(state.mediaExecutable));return ready?state:null; }
+  try { const state=JSON.parse(fs.readFileSync(file,'utf8'));const modelReady=!engine.packages?.model||(state.model&&fs.existsSync(state.model));const ready=fs.existsSync(state.executable)&&modelReady&&(!engine.packages?.media||fs.existsSync(state.mediaExecutable));if(!ready)return null;return {...state,updateAvailable:Boolean(engine.packages?.runtime?.sha256&&state.runtimeSha256!==engine.packages.runtime.sha256)||Boolean(engine.packages?.model?.sha256&&state.modelSha256!==engine.packages.model.sha256)}; }
   catch { return null; }
 }
