@@ -1,4 +1,4 @@
-# C-Net AI Studio Offline Desktop V11
+# C-Net AI Studio Universal Offline 1.0
 
 This directory is an isolated desktop application. It does not replace the Laravel production application or Worker V5.2.
 
