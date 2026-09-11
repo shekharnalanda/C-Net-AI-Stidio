@@ -11,5 +11,7 @@ contextBridge.exposeInMainWorld('studio', {
   generate: (engineId, input) => ipcRenderer.invoke('studio:generate', {engineId, input}),
   installRuntime: id => ipcRenderer.invoke('studio:runtime-install',id),
   selectMedia: () => ipcRenderer.invoke('studio:select-media'),
-  saveSubtitle: (file,text) => ipcRenderer.invoke('studio:subtitle-save',{file,text})
+  saveSubtitle: (file,text) => ipcRenderer.invoke('studio:subtitle-save',{file,text}),
+  listProjects: () => ipcRenderer.invoke('studio:projects'),
+  createProject: name => ipcRenderer.invoke('studio:project-create',name)
 });

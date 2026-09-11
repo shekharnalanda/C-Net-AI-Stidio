@@ -5,6 +5,7 @@ const {scanHardware} = require('./hardware.cjs');
 
 let manager;
 let runtimeRoot;
+let projectStore;
 const registry = () => JSON.parse(fs.readFileSync(path.join(__dirname, '../registry/engines.json'), 'utf8'));
 const engineById = id => {
   const engine = registry().engines.find(item => item.id === id);
@@ -43,20 +44,25 @@ ipcMain.handle('studio:select-media', async () => {
 ipcMain.handle('studio:engine-status', async (_event, id) => {
   const {detectAdapter} = await import('./core/engine-adapters.js');
   const engine=engineById(id);
-  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  if(['whisper-cpp','llama-cli'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   return detectAdapter(engine);
 });
 ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
   const {generateWithEngine} = await import('./core/engine-adapters.js');
   const engine=engineById(engineId);
-  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
-  return generateWithEngine(engine,input);
+  if(['whisper-cpp','llama-cli'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  const result=await generateWithEngine(engine,input);
+  if(input.projectId)projectStore.addOutput(input.projectId,{task:input.task,engine:engine.id,content:result.content});
+  return result;
 });
+ipcMain.handle('studio:projects',()=>projectStore.list());
+ipcMain.handle('studio:project-create',(_event,name)=>projectStore.create(name));
 ipcMain.handle('studio:subtitle-save',(_event,{file,text})=>{const outputRoot=path.resolve(require('node:os').homedir(),'Documents','C-Net AI Studio','Outputs');const target=path.resolve(file);if(!target.startsWith(`${outputRoot}${path.sep}`))throw new Error('Invalid subtitle output path.');fs.writeFileSync(target,text,'utf8');return target;});
 app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));
   runtimeRoot = path.join(app.getPath('userData'),'runtimes');
+  const {ProjectStore}=await import('./core/project-store.js');projectStore=new ProjectStore(path.join(app.getPath('userData'),'workspace'));
   createWindow();
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

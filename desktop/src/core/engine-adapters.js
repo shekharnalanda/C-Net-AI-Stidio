@@ -14,6 +14,7 @@ async function ollamaRequest(path, body, timeoutMs = 120000) {
 }
 
 export async function detectAdapter(engine) {
+  if (engine.adapter === 'llama-cli') return engine.executable && engine.modelFile && fs.existsSync(engine.executable) && fs.existsSync(engine.modelFile) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Local text runtime and model are not installed.'};
   if (engine.adapter === 'ollama') {
     try {
       const result = await ollamaRequest('/api/tags', null, 3000);
@@ -29,6 +30,13 @@ export async function detectAdapter(engine) {
 }
 
 export async function generateWithEngine(engine, input) {
+  if (engine.adapter === 'llama-cli') {
+    if (!engine.executable || !engine.modelFile) throw new Error('Local text engine is not installed.');
+    const language=input.language==='hi'?'उत्तर हिन्दी में दीजिए।':input.language==='en'?'Answer in English.':'Reply in the language used by the user.';
+    const {spawn}=await import('node:child_process');
+    const prompt=`${language}\n\nUser: ${input.prompt}\nAssistant:`;
+    return new Promise((resolve,reject)=>{const child=spawn(engine.executable,['-m',engine.modelFile,'-p',prompt,'-n','512','--no-display-prompt'],{shell:false,windowsHide:true});let output='',stderr='';child.stdout.on('data',d=>output+=d);child.stderr.on('data',d=>stderr+=d);child.on('error',reject);child.on('close',code=>code===0?resolve({type:'text',content:output.trim(),engine:engine.id}):reject(new Error(stderr||`Text engine exited with code ${code}.`)))});
+  }
   if (engine.adapter === 'ollama') {
     const result = await ollamaRequest('/api/generate', {model: engine.model, prompt: input.prompt, stream: false});
     return {type:'text', content:result.response, engine:engine.id};
