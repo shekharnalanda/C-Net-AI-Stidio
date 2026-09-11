@@ -29,10 +29,20 @@ export async function installRuntime(engine, rootDirectory) {
     const bin = path.join(staging, 'bin'); await extract(runtimeArchive, {dir:bin});
     const executable = findFile(bin, engine.executableName);
     if (!executable) throw new Error('Runtime executable was not found after extraction.');
+    let mediaExecutable = null;
+    if (engine.packages.media) {
+      const mediaArchive=path.join(staging,'media.zip');
+      await downloadResumable({url:engine.packages.media.url,destination:mediaArchive});
+      if(hash(mediaArchive)!==engine.packages.media.sha256)throw new Error('Media runtime verification failed.');
+      const mediaDirectory=path.join(staging,'media');await extract(mediaArchive,{dir:mediaDirectory});fs.rmSync(mediaArchive,{force:true});
+      mediaExecutable=findFile(mediaDirectory,engine.mediaExecutableName);
+      if(!mediaExecutable)throw new Error('Media runtime executable was not found.');
+    }
     fs.rmSync(runtimeArchive, {force:true});
     const relativeExecutable = path.relative(staging, executable);
+    const relativeMediaExecutable = mediaExecutable ? path.relative(staging,mediaExecutable) : null;
     fs.rmSync(target, {recursive:true, force:true}); fs.renameSync(staging, target);
-    const state = {id:engine.id,executable:path.join(target,relativeExecutable),model:path.join(target,engine.packages.model.fileName),installedAt:new Date().toISOString()};
+    const state = {id:engine.id,executable:path.join(target,relativeExecutable),model:path.join(target,engine.packages.model.fileName),mediaExecutable:relativeMediaExecutable?path.join(target,relativeMediaExecutable):null,installedAt:new Date().toISOString()};
     fs.writeFileSync(path.join(target,'runtime.json'),JSON.stringify(state,null,2),{mode:0o600});
     return state;
   } catch (error) { fs.rmSync(staging,{recursive:true,force:true}); throw error; }
@@ -41,6 +51,6 @@ export async function installRuntime(engine, rootDirectory) {
 export function runtimeState(engine, rootDirectory) {
   const file = path.join(rootDirectory, engine.id, 'runtime.json');
   if (!fs.existsSync(file)) return null;
-  try { const state=JSON.parse(fs.readFileSync(file,'utf8')); return fs.existsSync(state.executable)&&fs.existsSync(state.model)?state:null; }
+  try { const state=JSON.parse(fs.readFileSync(file,'utf8'));const ready=fs.existsSync(state.executable)&&fs.existsSync(state.model)&&(!engine.packages?.media||fs.existsSync(state.mediaExecutable));return ready?state:null; }
   catch { return null; }
 }

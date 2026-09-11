@@ -37,21 +37,22 @@ ipcMain.handle('studio:runtime-install', async (_event,id) => {
   return installRuntime(engineById(id),runtimeRoot);
 });
 ipcMain.handle('studio:select-media', async () => {
-  const result=await dialog.showOpenDialog({title:'Select WAV audio',properties:['openFile'],filters:[{name:'WAV Audio',extensions:['wav']}]});
+  const result=await dialog.showOpenDialog({title:'Select audio or video',properties:['openFile'],filters:[{name:'Audio and Video',extensions:['wav','mp3','m4a','aac','flac','ogg','mp4','mov','mkv','webm','avi']}]});
   return result.canceled?null:result.filePaths[0];
 });
 ipcMain.handle('studio:engine-status', async (_event, id) => {
   const {detectAdapter} = await import('./core/engine-adapters.js');
   const engine=engineById(id);
-  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;}}
+  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   return detectAdapter(engine);
 });
 ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
   const {generateWithEngine} = await import('./core/engine-adapters.js');
   const engine=engineById(engineId);
-  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;}}
+  if(engine.adapter==='whisper-cpp'){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   return generateWithEngine(engine,input);
 });
+ipcMain.handle('studio:subtitle-save',(_event,{file,text})=>{const outputRoot=path.resolve(require('node:os').homedir(),'Documents','C-Net AI Studio','Outputs');const target=path.resolve(file);if(!target.startsWith(`${outputRoot}${path.sep}`))throw new Error('Invalid subtitle output path.');fs.writeFileSync(target,text,'utf8');return target;});
 app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));

@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('studio', {
   engineStatus: id => ipcRenderer.invoke('studio:engine-status', id),
   generate: (engineId, input) => ipcRenderer.invoke('studio:generate', {engineId, input}),
   installRuntime: id => ipcRenderer.invoke('studio:runtime-install',id),
-  selectMedia: () => ipcRenderer.invoke('studio:select-media')
+  selectMedia: () => ipcRenderer.invoke('studio:select-media'),
+  saveSubtitle: (file,text) => ipcRenderer.invoke('studio:subtitle-save',{file,text})
 });
