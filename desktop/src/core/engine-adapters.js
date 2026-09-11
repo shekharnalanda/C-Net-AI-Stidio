@@ -48,7 +48,7 @@ export function llamaCliArgs(engine, prompt) {
   return ['-m', engine.modelFile, '-p', prompt, '-n', '256', '--no-display-prompt'];
 }
 
-function runTextProcess(executable, args, timeoutMs = 360000) {
+export function runTextProcess(executable, args, timeoutMs = 360000) {
   return new Promise(async (resolve, reject) => {
     const {spawn} = await import('node:child_process');
     const child = spawn(executable, args, {shell:false, windowsHide:true, stdio:['ignore','pipe','pipe']});
@@ -63,8 +63,10 @@ function runTextProcess(executable, args, timeoutMs = 360000) {
     child.stderr.on('data', data => stderr += data);
     child.on('error', finish(reject));
     child.on('close', code => {
-      if (code !== 0) return finish(reject)(new Error(stderr.trim() || `Text engine exited with code ${code}.`));
       const content = output.trim();
+      // Some llama.cpp Windows builds return 130 after receiving EOF even though
+      // they have already emitted a complete answer. Preserve that valid output.
+      if (code !== 0 && !(code === 130 && content)) return finish(reject)(new Error(stderr.trim() || `Text engine exited with code ${code}.`));
       if (!content) return finish(reject)(new Error('Text engine completed without producing an answer.'));
       finish(resolve)(content);
     });
