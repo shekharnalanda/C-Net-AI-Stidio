@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, dialog, nativeImage} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog, nativeImage, shell} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const {scanHardware} = require('./hardware.cjs');
@@ -41,16 +41,19 @@ ipcMain.handle('studio:select-media', async () => {
   const result=await dialog.showOpenDialog({title:'Select audio or video',properties:['openFile'],filters:[{name:'Audio and Video',extensions:['wav','mp3','m4a','aac','flac','ogg','mp4','mov','mkv','webm','avi']}]});
   return result.canceled?null:result.filePaths[0];
 });
+ipcMain.handle('studio:select-video-images',async()=>{const result=await dialog.showOpenDialog({title:'Select slideshow images',properties:['openFile','multiSelections'],filters:[{name:'Images',extensions:['png','jpg','jpeg','webp','bmp']}]});return result.canceled?[]:result.filePaths;});
+ipcMain.handle('studio:select-video-audio',async()=>{const result=await dialog.showOpenDialog({title:'Select soundtrack',properties:['openFile'],filters:[{name:'Audio',extensions:['wav','mp3','m4a','aac','flac','ogg']}]});return result.canceled?null:result.filePaths[0];});
+ipcMain.handle('studio:select-video-subtitle',async()=>{const result=await dialog.showOpenDialog({title:'Select subtitles',properties:['openFile'],filters:[{name:'SubRip subtitles',extensions:['srt']}]});return result.canceled?null:result.filePaths[0];});
 ipcMain.handle('studio:engine-status', async (_event, id) => {
   const {detectAdapter} = await import('./core/engine-adapters.js');
   const engine=engineById(id);
-  if(['whisper-cpp','llama-cli','stable-diffusion-cpp'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  if(['whisper-cpp','llama-cli','stable-diffusion-cpp','ffmpeg-video'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   return detectAdapter(engine);
 });
 ipcMain.handle('studio:generate', async (_event, {engineId, input}) => {
   const {generateWithEngine} = await import('./core/engine-adapters.js');
   const engine=engineById(engineId);
-  if(['whisper-cpp','llama-cli','stable-diffusion-cpp'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
+  if(['whisper-cpp','llama-cli','stable-diffusion-cpp','ffmpeg-video'].includes(engine.adapter)){const {runtimeState}=await import('./core/runtime-installer.js');const state=runtimeState(engine,runtimeRoot);if(state){engine.executable=state.executable;engine.modelFile=state.model;engine.mediaExecutable=state.mediaExecutable;}}
   const result=await generateWithEngine(engine,input);
   if(input.projectId)projectStore.addOutput(input.projectId,{task:input.task,engine:engine.id,content:result.content});
   return result;
@@ -61,6 +64,8 @@ ipcMain.handle('studio:subtitle-save',(_event,{file,text})=>{const outputRoot=pa
 const safeOutput = file => {const root=path.resolve(require('node:os').homedir(),'Documents','C-Net AI Studio','Outputs');const target=path.resolve(file);if(!target.startsWith(`${root}${path.sep}`))throw new Error('Invalid output path.');return target;};
 ipcMain.handle('studio:image-data',(_event,file)=>{const target=safeOutput(file);if(!/\.(png|jpe?g)$/i.test(target))throw new Error('Invalid image type.');return `data:image/${path.extname(target).toLowerCase()==='.png'?'png':'jpeg'};base64,${fs.readFileSync(target).toString('base64')}`;});
 ipcMain.handle('studio:image-export',async(_event,file)=>{const source=safeOutput(file);const result=await dialog.showSaveDialog({title:'Export image',defaultPath:path.basename(source),filters:[{name:'PNG image',extensions:['png']},{name:'JPEG image',extensions:['jpg','jpeg']}]});if(result.canceled)return null;if(/\.jpe?g$/i.test(result.filePath)){const jpeg=nativeImage.createFromPath(source).toJPEG(90);if(!jpeg.length)throw new Error('Image conversion failed.');fs.writeFileSync(result.filePath,jpeg)}else fs.copyFileSync(source,result.filePath);return result.filePath;});
+ipcMain.handle('studio:video-open',async(_event,file)=>{const target=safeOutput(file);if(!/\.mp4$/i.test(target))throw new Error('Invalid video type.');const error=await shell.openPath(target);if(error)throw new Error(error);return true;});
+ipcMain.handle('studio:video-export',async(_event,file)=>{const source=safeOutput(file);if(!/\.mp4$/i.test(source))throw new Error('Invalid video type.');const result=await dialog.showSaveDialog({title:'Export video',defaultPath:path.basename(source),filters:[{name:'MP4 video',extensions:['mp4']}]});if(result.canceled)return null;fs.copyFileSync(source,result.filePath);return result.filePath;});
 app.whenReady().then(async () => {
   const {ModelManager} = await import('./core/model-manager.js');
   manager = new ModelManager(path.join(app.getPath('userData'), 'models'));

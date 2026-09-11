@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {runAdapter} from './local-runner.js';
+import {createConcatManifest, temporaryManifest, videoArguments} from './video-composer.js';
 
 async function ollamaRequest(path, body, timeoutMs = 120000) {
   const controller = new AbortController();
@@ -26,6 +27,7 @@ export async function detectAdapter(engine) {
   if (engine.adapter === 'windows-sapi') return process.platform === 'win32' ? {ready:true, runtimeReady:true} : {ready:false, reason:'Windows offline voice is available only on Windows.'};
   if (engine.adapter === 'whisper-cpp') return engine.executable && engine.modelFile && fs.existsSync(engine.executable) && fs.existsSync(engine.modelFile) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Whisper runtime and model are not installed.'};
   if (engine.adapter === 'stable-diffusion-cpp') return engine.executable && engine.modelFile && fs.existsSync(engine.executable) && fs.existsSync(engine.modelFile) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Verified image runtime and model are not installed.'};
+  if (engine.adapter === 'ffmpeg-video') return engine.executable && fs.existsSync(engine.executable) ? {ready:true,runtimeReady:true} : {ready:false,reason:'Verified video runtime is not installed.'};
   if (engine.executable) return fs.existsSync(engine.executable) ? {ready:true} : {ready:false, reason:'Engine executable was not found.'};
   return {ready:false, reason:'Engine runtime is not installed.'};
 }
@@ -86,6 +88,15 @@ export async function generateWithEngine(engine, input) {
     await new Promise((resolve,reject)=>{const child=spawn(engine.executable,stableDiffusionArgs(engine,input,outputFile),{shell:false,windowsHide:true});let stderr='';child.stderr.on('data',d=>stderr+=d);child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error(stderr||`Image engine exited with code ${code}.`)))});
     if (!fs.existsSync(outputFile) || fs.statSync(outputFile).size < 8) throw new Error('Image engine did not create a valid output.');
     return {type:'image',content:outputFile,engine:engine.id};
+  }
+  if (engine.adapter === 'ffmpeg-video') {
+    if (!engine.executable) throw new Error('Verified video engine is not installed.');
+    const outputDirectory=path.join(os.homedir(),'Documents','C-Net AI Studio','Outputs');fs.mkdirSync(outputDirectory,{recursive:true});
+    const outputFile=path.join(outputDirectory,`video-${Date.now()}.mp4`),manifest=temporaryManifest();
+    const {spawn}=await import('node:child_process');
+    try{createConcatManifest(input.imageFiles,input.secondsPerImage,manifest);await new Promise((resolve,reject)=>{const child=spawn(engine.executable,videoArguments(engine,input,manifest,outputFile),{shell:false,windowsHide:true});let stderr='';child.stderr.on('data',d=>stderr+=d);child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error(stderr||`Video engine exited with code ${code}.`)))});}finally{fs.rmSync(manifest,{force:true})}
+    if(!fs.existsSync(outputFile)||fs.statSync(outputFile).size<12)throw new Error('Video engine did not create a valid output.');
+    return {type:'video',content:outputFile,engine:engine.id};
   }
   if (engine.adapter === 'command-json') return runAdapter({executable:engine.executable,args:engine.args || [],input});
   throw new Error('This engine adapter is not configured.');

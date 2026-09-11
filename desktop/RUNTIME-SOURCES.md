@@ -8,5 +8,6 @@ The application does not silently download an unverified executable.
 - Voice adapter: Windows System.Speech/SAPI supplied by Windows. It works offline and does not add a paid AI API dependency.
 - Media conversion: pinned BtbN FFmpeg `n8.1.2-51-g7ba069f4f1` Windows x64 shared build under LGPL-2.1-or-later, verified by SHA-256 before extraction.
 - Image generation: pinned `stable-diffusion.cpp` `master-853-b68d586` (MIT) official Windows CPU, Vulkan, and CUDA builds. GitHub-published SHA-256 digests are stored separately for every profile. The optional Stable Diffusion 1.5 EMA-only model is SHA-256 pinned and remains a separate download under CreativeML Open RAIL-M; the user must accept its usage restrictions before installation.
+- Video composition: the same pinned BtbN FFmpeg LGPL build supplies universal MPEG-4 encoding and optional NVIDIA NVENC hardware acceleration. It is a runtime-only package and does not require an AI model or paid API.
 
 Every downloadable runtime/model must have an HTTPS source, fixed version, SHA-256 digest, license record, and compatibility metadata before its Install button is enabled.

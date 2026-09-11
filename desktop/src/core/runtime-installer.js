@@ -15,17 +15,19 @@ const findFile = (directory, name) => {
 };
 
 export async function installRuntime(engine, rootDirectory) {
-  if (!engine.packages?.runtime || !engine.packages?.model) throw new Error('Verified runtime manifest is incomplete.');
+  if (!engine.packages?.runtime) throw new Error('Verified runtime manifest is incomplete.');
   const target = path.join(rootDirectory, engine.id);
   const staging = `${target}.staging`;
   fs.rmSync(staging, {recursive:true, force:true}); fs.mkdirSync(staging, {recursive:true});
   try {
     const runtimeArchive = path.join(staging, 'runtime.zip');
-    const modelFile = path.join(staging, engine.packages.model.fileName);
+    const modelFile = engine.packages.model ? path.join(staging, engine.packages.model.fileName) : null;
     await downloadResumable({url:engine.packages.runtime.url,destination:runtimeArchive});
     if (hash(runtimeArchive) !== engine.packages.runtime.sha256) throw new Error('Runtime verification failed.');
-    await downloadResumable({url:engine.packages.model.url,destination:modelFile});
-    if (hash(modelFile) !== engine.packages.model.sha256) throw new Error('Model verification failed.');
+    if (engine.packages.model) {
+      await downloadResumable({url:engine.packages.model.url,destination:modelFile});
+      if (hash(modelFile) !== engine.packages.model.sha256) throw new Error('Model verification failed.');
+    }
     const bin = path.join(staging, 'bin'); await extract(runtimeArchive, {dir:bin});
     const executable = findFile(bin, engine.executableName);
     if (!executable) throw new Error('Runtime executable was not found after extraction.');
@@ -42,7 +44,7 @@ export async function installRuntime(engine, rootDirectory) {
     const relativeExecutable = path.relative(staging, executable);
     const relativeMediaExecutable = mediaExecutable ? path.relative(staging,mediaExecutable) : null;
     fs.rmSync(target, {recursive:true, force:true}); fs.renameSync(staging, target);
-    const state = {id:engine.id,executable:path.join(target,relativeExecutable),model:path.join(target,engine.packages.model.fileName),mediaExecutable:relativeMediaExecutable?path.join(target,relativeMediaExecutable):null,installedAt:new Date().toISOString()};
+    const state = {id:engine.id,executable:path.join(target,relativeExecutable),model:engine.packages.model?path.join(target,engine.packages.model.fileName):null,mediaExecutable:relativeMediaExecutable?path.join(target,relativeMediaExecutable):null,installedAt:new Date().toISOString()};
     fs.writeFileSync(path.join(target,'runtime.json'),JSON.stringify(state,null,2),{mode:0o600});
     return state;
   } catch (error) { fs.rmSync(staging,{recursive:true,force:true}); throw error; }
@@ -51,6 +53,6 @@ export async function installRuntime(engine, rootDirectory) {
 export function runtimeState(engine, rootDirectory) {
   const file = path.join(rootDirectory, engine.id, 'runtime.json');
   if (!fs.existsSync(file)) return null;
-  try { const state=JSON.parse(fs.readFileSync(file,'utf8'));const ready=fs.existsSync(state.executable)&&fs.existsSync(state.model)&&(!engine.packages?.media||fs.existsSync(state.mediaExecutable));return ready?state:null; }
+  try { const state=JSON.parse(fs.readFileSync(file,'utf8'));const modelReady=!engine.packages?.model||(state.model&&fs.existsSync(state.model));const ready=fs.existsSync(state.executable)&&modelReady&&(!engine.packages?.media||fs.existsSync(state.mediaExecutable));return ready?state:null; }
   catch { return null; }
 }
