@@ -45,7 +45,7 @@ export function stableDiffusionArgs(engine, input, outputFile) {
 }
 
 export function llamaCliArgs(engine, prompt) {
-  return ['-m', engine.modelFile, '-p', prompt, '-n', '256', '--no-display-prompt', '--no-conversation', '--simple-io'];
+  return ['-m', engine.modelFile, '-p', prompt, '-n', '256', '--no-display-prompt'];
 }
 
 function runTextProcess(executable, args, timeoutMs = 360000) {

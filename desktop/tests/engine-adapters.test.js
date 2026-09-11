@@ -5,7 +5,8 @@ import {detectAdapter, generateWithEngine, llamaCliArgs, stableDiffusionArgs} fr
 
 test('llama CLI runs once and cannot wait for interactive input',()=>{
   const args=llamaCliArgs({modelFile:'model.gguf'},'Namaste');
-  assert.deepEqual(args,['-m','model.gguf','-p','Namaste','-n','256','--no-display-prompt','--no-conversation','--simple-io']);
+  assert.deepEqual(args,['-m','model.gguf','-p','Namaste','-n','256','--no-display-prompt']);
+  assert.equal(args.includes('--no-conversation'),false);
 });
 test('unknown adapter remains safely unavailable',async()=>{assert.equal((await detectAdapter({})).ready,false)});
 test('generation rejects an unconfigured adapter',async()=>{await assert.rejects(generateWithEngine({adapter:'unknown'},{prompt:'test'}),/not configured/)});
