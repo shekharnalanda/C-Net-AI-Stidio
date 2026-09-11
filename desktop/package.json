@@ -1,0 +1,26 @@
+{
+  "name": "cnet-ai-studio-desktop",
+  "version": "0.1.0",
+  "description": "Universal offline AI workspace with adaptive engine selection",
+  "author": "C-Net AI Studio",
+  "private": true,
+  "type": "module",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/*.test.js",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^38.1.2",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "in.mciedu.cnet.aistudio",
+    "productName": "C-Net AI Studio",
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "registry/**/*", "package.json"],
+    "win": { "target": ["nsis"], "artifactName": "C-Net-AI-Studio-Offline-Setup-${version}.${ext}" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true }
+  }
+}

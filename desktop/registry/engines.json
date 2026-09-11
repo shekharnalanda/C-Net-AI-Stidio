@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "engines": [
+    {"id":"llama-cpu","name":"Local Text Lite","tasks":["text","script","prompt"],"runtime":"local","minRamGb":8,"minVramGb":0,"gpu":"any","quality":2,"speed":2,"diskGb":5},
+    {"id":"whisper-cpu","name":"Local Caption Lite","tasks":["caption","transcription"],"runtime":"local","minRamGb":8,"minVramGb":0,"gpu":"any","quality":3,"speed":2,"diskGb":3},
+    {"id":"piper-tts","name":"Local Voice Lite","tasks":["voice","tts"],"runtime":"local","minRamGb":4,"minVramGb":0,"gpu":"any","quality":2,"speed":4,"diskGb":2},
+    {"id":"sdxl-standard","name":"Image Creator Standard","tasks":["image"],"runtime":"local","minRamGb":16,"minVramGb":6,"gpu":"nvidia","quality":4,"speed":3,"diskGb":18},
+    {"id":"flux-creator","name":"Image Creator Advanced","tasks":["image"],"runtime":"local","minRamGb":24,"minVramGb":12,"gpu":"nvidia","quality":5,"speed":3,"diskGb":35},
+    {"id":"video-creator","name":"Local Video Creator","tasks":["video"],"runtime":"local","minRamGb":32,"minVramGb":12,"gpu":"nvidia","quality":4,"speed":2,"diskGb":45}
+  ]
+}
