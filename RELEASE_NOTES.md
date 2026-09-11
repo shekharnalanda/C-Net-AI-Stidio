@@ -1,4 +1,4 @@
-# C-Net AI Studio Universal Offline 1.0.3
+# C-Net AI Studio Universal Offline 1.0.4
 
 Corrective production release of the hardware-adaptive Windows desktop application.
 
@@ -7,6 +7,7 @@ Corrective production release of the hardware-adaptive Windows desktop applicati
 - Text generation now closes the llama.cpp input stream so it cannot wait for interactive input.
 - Removed a command option unsupported by the pinned llama.cpp Windows runtime.
 - Preserves a completed text answer when the Windows runtime reports its EOF shutdown as exit code 130.
+- Uses the pinned b10901 runtime's supported single-turn mode and suppresses startup logs from generated text.
 - Output is limited for practical CPU performance on lower-spec Windows PCs.
 - A six-minute safety timeout stops an engine cleanly instead of leaving the workbench stuck indefinitely.
 - Existing downloaded runtimes, models, projects, and preferences remain available after upgrading from 1.0.0.

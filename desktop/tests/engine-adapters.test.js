@@ -5,7 +5,7 @@ import {detectAdapter, generateWithEngine, llamaCliArgs, runTextProcess, stableD
 
 test('llama CLI runs once and cannot wait for interactive input',()=>{
   const args=llamaCliArgs({modelFile:'model.gguf'},'Namaste');
-  assert.deepEqual(args,['-m','model.gguf','-p','Namaste','-n','256','--no-display-prompt']);
+  assert.deepEqual(args,['-m','model.gguf','-p','Namaste','-n','256','--no-display-prompt','-st','--simple-io','--log-disable']);
   assert.equal(args.includes('--no-conversation'),false);
 });
 
