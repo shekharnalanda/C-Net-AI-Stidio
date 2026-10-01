@@ -15,6 +15,8 @@ use App\Http\Controllers\Studio\SmartToolController;
 use App\Http\Controllers\Studio\BillingController;
 use Illuminate\Support\Facades\Route;
 
+require __DIR__.'/mci-account-recovery.php';
+
 Route::get('/', function () {
     return view('studio.home');
 })->name('studio.home');

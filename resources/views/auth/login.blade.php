@@ -35,7 +35,7 @@ a{color:#5adfff;text-decoration:none}.foot{text-align:center;margin-top:20px;col
 <input type="checkbox" name="remember" value="1" style="width:auto"> Remember me
 </label>
 <button type="submit">Login to Studio</button>
-</form>
+<p style="margin-top:16px"><a style="display:inline-block;padding:9px 12px;border-radius:8px;background:#edf4fb;color:#164e85" href="{{ route('mci.recovery') }}">Forgot password / login email?</a></p></form>
 
 <div class="foot">
 New creator? <a href="{{ route('register') }}">Start 7-day free trial</a>
