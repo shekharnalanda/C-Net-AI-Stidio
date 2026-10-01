@@ -70,5 +70,7 @@ th{color:#8091ae}
 </div>
 
 </div>
+<p><a href="{{ route('mci.recovery.contact') }}">Recovery Email</a></p>
 </body>
 </html>
+

@@ -50,6 +50,7 @@ button{padding:13px 18px;border:0;border-radius:12px;background:linear-gradient(
 @if($user->isAdmin())
 <a href="{{ route('admin.dashboard') }}">Master Admin</a>
 @endif
+<a href="{{ route('mci.recovery.contact') }}">Recovery Email</a>
 </nav>
 
 <form method="POST" action="{{ route('logout') }}" style="margin-top:26px">
@@ -158,3 +159,4 @@ function launchTool(type, ratio) {
 
 </body>
 </html>
+
