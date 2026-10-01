@@ -12,13 +12,13 @@ class AccountRecoveryOtp
 {
     public function issue(string $email, string $purpose, array $payload, string $sessionId, string $ip): string
     {
-        if (in_array(config('mail.default'), ['log','array'], true)) {
+        if (in_array(config('mail.default'), ['log', 'array'], true)) {
             throw new \RuntimeException('Email delivery is not configured. Please contact the institution.');
         }
         $email = Str::lower(trim($email));
         $id = (string) Str::uuid();
         $code = (string) random_int(100000, 999999);
-        DB::transaction(function () use ($email, $purpose, $payload, $sessionId, $ip, $id, $code) {
+        DB::transaction(function () use ($email, $purpose, $payload, $sessionId, $id, $code) {
             // Persist limits independently of browser cookies and IP rotation.
             $key = hash('sha256', $purpose.'|'.$email);
             DB::table('mci_recovery_limits')->insertOrIgnore(['key' => $key, 'sent_at' => 0]);
@@ -41,6 +41,7 @@ class AccountRecoveryOtp
             report($e);
             throw new \RuntimeException('Email delivery is unavailable. Please try again later.');
         }
+
         return $id;
     }
 
@@ -55,12 +56,19 @@ class AccountRecoveryOtp
                 return ['ok' => false];
             }
             DB::table('mci_recovery_challenges')->where('id', $id)->increment('attempts');
-            if (! Hash::check($code, $row->code_hash)) return ['ok' => false];
+            if (! Hash::check($code, $row->code_hash)) {
+                return ['ok' => false];
+            }
             $payload = json_decode($row->payload, true, 512, JSON_THROW_ON_ERROR);
             DB::table('mci_recovery_challenges')->where('id', $id)->update(['consumed_at' => time()]);
+
             return ['ok' => true, 'value' => $action($payload, $row->email)];
         });
-        if (! $result['ok']) throw new \RuntimeException('The code is invalid, expired, or already used.');
+        if (! $result['ok']) {
+            throw new \RuntimeException('The code is invalid, expired, or already used.');
+        }
+
         return $result['value'];
     }
 }
+

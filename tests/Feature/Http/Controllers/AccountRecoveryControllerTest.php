@@ -2,10 +2,11 @@
 
 namespace Tests\Feature\Http\Controllers;
 
-use App\Models\User;
 use App\Mail\AccountRecoveryCode;
+use App\Models\User;
 use App\Services\AccountRecoveryOtp;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Mail\PendingMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -152,6 +153,7 @@ class AccountRecoveryControllerTest extends TestCase
             ->assertSessionHasNoErrors()->assertSessionHas('status', $status)
             ->assertSessionHas('mci_recovery_pending', function (array $pending) use (&$pendingId): bool {
                 $pendingId = $pending['id'];
+
                 return $pending['purpose'] === 'password';
             });
 
@@ -170,7 +172,7 @@ class AccountRecoveryControllerTest extends TestCase
     {
         config(['mail.default' => 'smtp']);
         $user = User::factory()->create();
-        $pendingMail = \Mockery::mock(\Illuminate\Mail\PendingMail::class);
+        $pendingMail = \Mockery::mock(PendingMail::class);
         $pendingMail->shouldReceive('send')->once()->andThrow(new \RuntimeException('Test transport unavailable'));
         Mail::shouldReceive('to')->once()->with($user->email)->andReturn($pendingMail);
         $status = 'If this email is eligible, a recovery code has been sent. Check your inbox and spam folder.';

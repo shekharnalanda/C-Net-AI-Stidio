@@ -4,21 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\AccountRecoveryOtp;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
+use App\Services\RecoverySessionRevoker;
+use App\Support\AdmissionStore;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+
 class AccountRecoveryController extends Controller
 {
     public function show(Request $request): View
     {
-        return view('recovery.account', ['applicationPortal' => class_exists(\App\Support\AdmissionStore::class)]);
+        return view('recovery.account', ['applicationPortal' => class_exists(AdmissionStore::class)]);
     }
+
     public function send(Request $request, AccountRecoveryOtp $otp): RedirectResponse
     {
         $data = $request->validate(['email' => ['required', 'email', 'max:254'], 'purpose' => ['required', 'in:password,identifier,application']]);
@@ -35,8 +39,8 @@ class AccountRecoveryController extends Controller
             if ($ids) {
                 $payload = ['ids' => $ids];
             }
-        } elseif (class_exists(\App\Support\AdmissionStore::class)) {
-            $ids = collect(\App\Support\AdmissionStore::all())->filter(fn($row) => Str::lower(trim((string) ($row['email'] ?? ''))) === $email && ($row['status'] ?? '') === 'admitted')->pluck('id')->all();
+        } elseif (class_exists(AdmissionStore::class)) {
+            $ids = collect(AdmissionStore::all())->filter(fn ($row) => Str::lower(trim((string) ($row['email'] ?? ''))) === $email && ($row['status'] ?? '') === 'admitted')->pluck('id')->all();
             if ($ids) {
                 $payload = ['ids' => $ids];
             }
@@ -54,8 +58,10 @@ class AccountRecoveryController extends Controller
             }
         }
         $request->session()->put('mci_recovery_pending', ['id' => $id, 'purpose' => $purpose]);
+
         return back()->with('status', 'If this email is eligible, a recovery code has been sent. Check your inbox and spam folder.');
     }
+
     public function verify(Request $request, AccountRecoveryOtp $otp): RedirectResponse
     {
         $pending = $request->session()->get('mci_recovery_pending');
@@ -70,7 +76,7 @@ class AccountRecoveryController extends Controller
             $identifiers = $otp->consume($pending['id'], $data['code'], $pending['purpose'], $request->session()->getId(), function (array $payload, string $email) use ($pending, $data, &$resetUserId): array {
                 if ($pending['purpose'] === 'password') {
                     $user = User::whereKey($payload['id'])->lockForUpdate()->first();
-                    if (!$user || !hash_equals($payload['email'], $user->email) || !hash_equals($payload['password_hash'], $user->password)) {
+                    if (! $user || ! hash_equals($payload['email'], $user->email) || ! hash_equals($payload['password_hash'], $user->password)) {
                         throw new \RuntimeException('Account details have changed. Request a new code.');
                     }
                     $update = ['password' => Hash::make($data['password'])];
@@ -89,15 +95,18 @@ class AccountRecoveryController extends Controller
                     if (Schema::hasTable('personal_access_tokens') && Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
                         DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->where('tokenable_type', $user->getMorphClass())->delete();
                     }
-                    app(\App\Services\RecoverySessionRevoker::class)->revokeFileSessions($user->id);
+                    app(RecoverySessionRevoker::class)->revokeFileSessions($user->id);
                     $resetUserId = $user->id;
+
                     return [];
                 }
                 if ($pending['purpose'] === 'identifier') {
                     $ids = DB::table('mci_recovery_contacts')->whereIn('user_id', $payload['ids'])->where('email', $email)->pluck('user_id');
+
                     return User::whereIn('id', $ids)->pluck('email')->all();
                 }
-                return collect(\App\Support\AdmissionStore::all())->filter(fn(array $row) => in_array($row['id'] ?? null, $payload['ids'], true) && Str::lower(trim((string) ($row['email'] ?? ''))) === $email && ($row['status'] ?? '') === 'admitted')->pluck('application_no')->all();
+
+                return collect(AdmissionStore::all())->filter(fn (array $row) => in_array($row['id'] ?? null, $payload['ids'], true) && Str::lower(trim((string) ($row['email'] ?? ''))) === $email && ($row['status'] ?? '') === 'admitted')->pluck('application_no')->all();
             });
         } catch (\RuntimeException $e) {
             return back()->withErrors(['code' => $e->getMessage()]);
@@ -109,17 +118,20 @@ class AccountRecoveryController extends Controller
         }
         $request->session()->forget('mci_recovery_pending');
         $request->session()->regenerate();
+
         return back()->with('status', $pending['purpose'] === 'password' ? 'Password updated. Please sign in with your new password.' : 'Your verified login identifiers are shown below.')->with('recovered_identifiers', $identifiers);
     }
+
     public function contact(Request $request): View
     {
         return view('recovery.contact');
     }
+
     public function sendContact(Request $request, AccountRecoveryOtp $otp): RedirectResponse
     {
         $data = $request->validate(['email' => ['required', 'email', 'max:254'], 'current_password' => ['required', 'string']]);
         $user = $request->user();
-        if (!Hash::check($data['current_password'], $user->password)) {
+        if (! Hash::check($data['current_password'], $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect.']);
         }
         $email = Str::lower(trim($data['email']));
@@ -132,8 +144,10 @@ class AccountRecoveryController extends Controller
             return back()->withErrors(['email' => $e->getMessage()]);
         }
         $request->session()->put('mci_contact_pending', $id);
+
         return back()->with('status', 'A verification code has been sent to your recovery email.');
     }
+
     public function verifyContact(Request $request, AccountRecoveryOtp $otp): RedirectResponse
     {
         $data = $request->validate(['code' => ['required', 'regex:/^[0-9]{6}$/']]);
@@ -142,7 +156,7 @@ class AccountRecoveryController extends Controller
         try {
             $otp->consume($id, $data['code'], 'contact', $request->session()->getId(), function (array $payload, string $email) use ($request): void {
                 $user = $request->user()->fresh();
-                if ($payload['id'] != $user->id || !hash_equals($payload['password_hash'], $user->password)) {
+                if ($payload['id'] != $user->id || ! hash_equals($payload['password_hash'], $user->password)) {
                     throw new \RuntimeException('Account details have changed. Request a new code.');
                 }
                 DB::table('mci_recovery_contacts')->updateOrInsert(['user_id' => $user->id], ['email' => $email, 'verified_at' => now()]);
@@ -151,6 +165,7 @@ class AccountRecoveryController extends Controller
             return back()->withErrors(['code' => $e->getMessage()]);
         }
         $request->session()->forget('mci_contact_pending');
+
         return back()->with('status', 'Recovery email verified and saved.');
     }
 }
