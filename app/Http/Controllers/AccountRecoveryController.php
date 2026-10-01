@@ -36,7 +36,7 @@ class AccountRecoveryController extends Controller
                 $payload = ['ids' => $ids];
             }
         } elseif (class_exists(\App\Support\AdmissionStore::class)) {
-            $ids = collect(\App\Support\AdmissionStore::all())->filter(fn(array $row) => Str::lower(trim((string) ($row['email'] ?? ''))) === $email && ($row['status'] ?? '') === 'admitted')->pluck('id')->all();
+            $ids = collect(\App\Support\AdmissionStore::all())->filter(fn($row) => Str::lower(trim((string) ($row['email'] ?? ''))) === $email && ($row['status'] ?? '') === 'admitted')->pluck('id')->all();
             if ($ids) {
                 $payload = ['ids' => $ids];
             }
@@ -44,7 +44,14 @@ class AccountRecoveryController extends Controller
         try {
             $id = $payload ? $otp->issue($email, $purpose, $payload, $request->session()->getId(), $request->ip()) : (string) Str::uuid();
         } catch (\RuntimeException $e) {
-            return back()->withErrors(['email' => $e->getMessage()]);
+            $id = (string) Str::uuid();
+            $pending = $request->session()->get('mci_recovery_pending');
+            if (is_array($pending) && ($pending['purpose'] ?? null) === $purpose && is_string($pending['id'] ?? null)) {
+                $usable = DB::table('mci_recovery_challenges')->where('id', $pending['id'])->where('email', $email)->where('purpose', $purpose)->where('session_hash', hash('sha256', $request->session()->getId()))->where('expires_at', '>=', time())->where('attempts', '<', 5)->whereNull('consumed_at')->exists();
+                if ($usable) {
+                    $id = $pending['id'];
+                }
+            }
         }
         $request->session()->put('mci_recovery_pending', ['id' => $id, 'purpose' => $purpose]);
         return back()->with('status', 'If this email is eligible, a recovery code has been sent. Check your inbox and spam folder.');
