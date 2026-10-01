@@ -11,4 +11,3 @@ Route::middleware('auth')->group(function () {
     Route::post('/account/recovery-email/send', [AccountRecoveryController::class, 'sendContact'])->middleware('throttle:3,10')->name('mci.recovery.contact.send');
     Route::post('/account/recovery-email/verify', [AccountRecoveryController::class, 'verifyContact'])->middleware('throttle:10,10')->name('mci.recovery.contact.verify');
 });
-

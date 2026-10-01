@@ -71,4 +71,3 @@ class AccountRecoveryOtp
         return $result['value'];
     }
 }
-
