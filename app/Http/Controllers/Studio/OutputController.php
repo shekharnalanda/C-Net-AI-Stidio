@@ -9,6 +9,7 @@ use App\Models\StudioProject;
 use App\Services\Studio\OutputService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class OutputController extends Controller
 {
@@ -81,8 +82,7 @@ class OutputController extends Controller
         ];
 
         $real = collect($candidates)
-            ->first(fn ($candidate) =>
-                $candidate && File::exists($candidate)
+            ->first(fn ($candidate) => $candidate && File::exists($candidate)
             );
 
         abort_unless($real, 404, 'Generated file is not available on this server.');
@@ -114,6 +114,10 @@ class OutputController extends Controller
             'Only failed or cancelled jobs can be retried.'
         );
 
+        if ($job->engine === 'hf-gradio') {
+            return redirect()->route('studio.create')->with('success', 'Please create a new request with your script or image.');
+        }
+
         $newJob = $job->replicate([
             'job_uuid',
             'status',
@@ -123,7 +127,7 @@ class OutputController extends Controller
             'completed_at',
         ]);
 
-        $newJob->job_uuid = (string) \Illuminate\Support\Str::uuid();
+        $newJob->job_uuid = (string) Str::uuid();
         $newJob->status = 'queued';
         $newJob->progress = 0;
         $newJob->error_message = null;

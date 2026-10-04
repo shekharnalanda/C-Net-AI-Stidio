@@ -3,17 +3,19 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Studio\AdminController;
 use App\Http\Controllers\Studio\AIJobController;
+use App\Http\Controllers\Studio\BillingController;
 use App\Http\Controllers\Studio\DashboardController;
 use App\Http\Controllers\Studio\MediaController;
+use App\Http\Controllers\Studio\OutputController;
 use App\Http\Controllers\Studio\ProjectController;
+use App\Http\Controllers\Studio\SmartToolController;
+use App\Http\Controllers\Studio\TemplateController;
 use App\Http\Controllers\Studio\WorkerDownloadController;
 use App\Http\Controllers\Studio\WorkerManagementController;
-use App\Http\Controllers\Studio\TemplateController;
 use App\Http\Controllers\Studio\WorkspaceController;
-use App\Http\Controllers\Studio\OutputController;
-use App\Http\Controllers\Studio\SmartToolController;
-use App\Http\Controllers\Studio\BillingController;
 use Illuminate\Support\Facades\Route;
+
+require __DIR__.'/huggingface.php';
 
 Route::get('/', function () {
     return view('studio.home');
@@ -70,7 +72,6 @@ Route::middleware('auth')->group(function () {
         [AIJobController::class, 'status']
     )->name('jobs.status');
 
-
     Route::get('/studio/templates', [TemplateController::class, 'index'])
         ->name('studio.templates');
 
@@ -86,7 +87,6 @@ Route::middleware('auth')->group(function () {
         '/studio/projects/{project}/duplicate',
         [WorkspaceController::class, 'duplicate']
     )->name('projects.duplicate');
-
 
     Route::get('/studio/outputs', [OutputController::class, 'index'])
         ->name('studio.outputs');

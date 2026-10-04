@@ -162,32 +162,30 @@
         <div class="brand">C-Net <span>AI Studio</span></div>
 
         <div class="nav-actions">
-            <a href="#">Features</a>
-            <a href="#">AI Tools</a>
-            <a href="#">Pricing</a>
-            <a href="{{ route('register') }}" class="btn">Start Creating</a>
+            <a href="#features">Features</a>
+            <a href="{{ route('studio.create') }}">Voice & Video</a>
+            <a href="{{ route('studio.create') }}" class="btn">Start Creating</a>
         </div>
     </nav>
 
     <section class="hero">
 
         <div>
-            <span class="badge">V3 • AI-First Creative Platform</span>
+            <span class="badge">Hindi Voice + Short Image Animation</span>
 
             <h1>
-                Create anything.<br>
-                <span class="gradient">Powered by AI.</span>
+                Give your ideas<br>
+                <span class="gradient">a voice. And motion.</span>
             </h1>
 
             <p class="lead">
-                Create, edit, enhance and automate professional videos,
-                images, ads, reels, audio and creative content from one
-                powerful studio — built for creators, businesses,
-                institutions and agencies.
+                Create natural Hindi narration with Swara or Madhur,
+                and animate your images into 1–5 second video clips.
+                Preview your creations and download MP3 or MP4 from your studio.
             </p>
 
             <div class="actions">
-                <a class="btn" href="{{ route('register') }}">Start Free Trial</a>
+                <a class="btn" href="{{ route('studio.create') }}">Create Voice or Video</a>
                 <a class="btn secondary" href="{{ route('login') }}">Login to Studio</a>
             </div>
         </div>
@@ -197,10 +195,10 @@
                 <div>
                     <strong>C-Net AI Studio</strong>
                     <p style="color:#aab8d2;line-height:1.6">
-                        Text → Video<br>
+                        Hindi Text → Voice<br>
                         Image → Video<br>
-                        Business Ads<br>
-                        Reels • Voice • Captions • AI Editing
+                        Swara • Madhur<br>
+                        Preview • Download • Your Creations
                     </p>
                 </div>
             </div>
@@ -208,26 +206,26 @@
 
     </section>
 
-    <div class="features">
+    <div id="features" class="features">
 
         <div class="feature">
-            <b>AI Video Generator</b>
-            <span>Turn prompts, scripts and ideas into complete videos.</span>
+            <b>Hindi Voice</b>
+            <span>Turn scripts into Swara or Madhur narration. Download MP3.</span>
         </div>
 
         <div class="feature">
-            <b>Smart Video Editor</b>
-            <span>Professional timeline, layers, effects and automation.</span>
+            <b>Image to Video</b>
+            <span>Animate a photo into a silent 1–5 second MP4 clip.</span>
         </div>
 
         <div class="feature">
-            <b>Business Ad Studio</b>
-            <span>Create branded ads and promotional videos in one click.</span>
+            <b>Your Creations</b>
+            <span>Preview, download and revisit results securely in your account.</span>
         </div>
 
         <div class="feature">
-            <b>Open AI Architecture</b>
-            <span>No mandatory paid AI provider dependency.</span>
+            <b>More Tools Ahead</b>
+            <span>Additional editing and creative workflows are in development.</span>
         </div>
 
     </div>

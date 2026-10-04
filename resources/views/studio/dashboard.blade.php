@@ -38,9 +38,9 @@ button{padding:13px 18px;border:0;border-radius:12px;background:linear-gradient(
 
 <nav>
 <a class="active" href="{{ route('studio.dashboard') }}">Dashboard</a>
-<a href="#">AI Video</a>
+<a href="{{ route('studio.create', ['type' => 'image-to-video']) }}">AI Video</a>
 <a href="#">Image Studio</a>
-<a href="#">Audio & Voice</a>
+<a href="{{ route('studio.create') }}">Audio & Voice</a>
 <a href="{{ route('studio.smart-tools') }}">AI Tools</a>
 <a href="{{ route('projects.index') }}">My Projects</a>
 <a href="{{ route('studio.templates') }}">Templates</a>
@@ -85,6 +85,7 @@ Subscription Required
 <div class="muted">C-NET AI STUDIO V3</div>
 <h2>Turn your <span class="gradient">idea into impact</span> with AI.</h2>
 <p class="muted">Video, image, audio, advertising, reels and intelligent creative automation from one workspace.</p>
+<p><a class="link" href="{{ route('studio.create') }}">Generate Hindi Voice →</a> &nbsp; <a class="link" href="{{ route('studio.create', ['type' => 'image-to-video']) }}">Animate an Image →</a></p>
 
 <form class="quick" method="POST" action="{{ route('projects.store') }}">
 @csrf
@@ -123,7 +124,7 @@ Subscription Required
 <div class="tool"><b>Image to Video</b><p>Animate images and create cinematic or promotional visual sequences.</p><button onclick="launchTool('image-to-video','16:9')">Animate →</button></div>
 <div class="tool"><b>Business Ad Studio</b><p>Create branded advertisements for businesses and institutions.</p><button onclick="launchTool('business-ad','16:9')">Build Ad →</button></div>
 <div class="tool"><b>Smart Reels</b><p>Vertical short-form videos with smart captions and sequencing.</p><button onclick="launchTool('reel','9:16')">Create Reel →</button></div>
-<div class="tool"><b>AI Voice Studio</b><p>Voiceover, narration and multilingual audio workflows.</p><a class="link" href="{{ route('studio.smart-tools') }}">Open Voice →</a></div>
+<div class="tool"><b>AI Voice Studio</b><p>Create Hindi narration with Swara or Madhur. Preview and download MP3.</p><a class="link" href="{{ route('studio.create') }}">Open Voice →</a></div>
 <div class="tool"><b>Image AI</b><p>Thumbnails, backgrounds, enhancement and creative composition.</p><span class="link">Open Image AI →</span></div>
 <div class="tool"><b>Auto Captions</b><p>Subtitle generation and synchronized caption workflows.</p><a class="link" href="{{ route('studio.smart-tools') }}">Generate →</a></div>
 <div class="tool"><b>Pro Timeline Editor</b><p>Tracks, layers, titles, transitions, audio and effects.</p><button onclick="launchTool('video','16:9')">Open Editor →</button></div>
@@ -141,6 +142,10 @@ Subscription Required
 
 <script>
 function launchTool(type, ratio) {
+    if (type === 'image-to-video') {
+        window.location.href = @json(route('studio.create', ['type' => 'image-to-video']));
+        return;
+    }
     const titles = {
         'text-to-video':'Text to Video Project',
         'image-to-video':'Image to Video Project',
