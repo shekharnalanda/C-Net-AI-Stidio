@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/huggingface.php';
 
+if (is_file(__DIR__.'/mci-account-recovery.php')) {
+    require __DIR__.'/mci-account-recovery.php';
+}
+
 Route::get('/', function () {
     return view('studio.home');
 })->name('studio.home');

@@ -141,6 +141,12 @@ Subscription Required
 </form>
 
 <script>
+document.querySelector('form.quick').addEventListener('submit', function (event) {
+    if (this.elements.type.value === 'image-to-video') {
+        event.preventDefault();
+        launchTool('image-to-video', '16:9');
+    }
+});
 function launchTool(type, ratio) {
     if (type === 'image-to-video') {
         window.location.href = @json(route('studio.create', ['type' => 'image-to-video']));
@@ -161,5 +167,10 @@ function launchTool(type, ratio) {
 }
 </script>
 
+@auth
+@if(\Illuminate\Support\Facades\Route::has('mci.recovery.contact'))
+<p style="padding:12px"><a href="{{ route('mci.recovery.contact') }}">Recovery Email</a></p>
+@endif
+@endauth
 </body>
 </html>
